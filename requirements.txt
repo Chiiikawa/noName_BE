@@ -1,0 +1,4 @@
+django
+djangorestframework
+# connect to postgresql
+psycopg2
