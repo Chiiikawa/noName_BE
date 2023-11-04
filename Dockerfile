@@ -7,12 +7,14 @@ RUN apt update
 
 # 가상환경 설치 && 실행
 RUN python3 -m venv myvenv
-RUN source myvenv/bin/activate
+RUN echo "source myvenv/bin/activate"
 
 # workspace 폴더 생성
-RUN mkdir /srv/workspace
+RUN mkdir -p /srv/workspace/noName_BE
+WORKDIR /srv/workspace/no Name_BE
 # WORKDIR 이동
-WORKDIR /srv/workspace
+
+
 
 # requirements 설치
 COPY . .
@@ -21,4 +23,4 @@ RUN pip install -r requirements.txt
 
 
 EXPOSE 8000
-CMD ["python3", "./project_noName/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python3", "./manage.py", "runserver", "0.0.0.0:8000"]
