@@ -46,8 +46,8 @@ class Products(models.Model):
     related_name="products",
     )
     productsize = models.CharField("content", max_length=10)
-    productframe =model.ForeignKey(ProductFrame, blank=True, null=True)
-    cart = model.ManyToManyField(AUTH_USER_MODEL, related_name="cartitems")
+    productframe =models.ForeignKey(ProductFrame, blank=True, null=True)
+    cart = models.ManyToManyField(AUTH_USER_MODEL, related_name="cartitems")
 
 class ProductFrame(models.Model):
     frametitle = model.CharField("title", max_length=20)
