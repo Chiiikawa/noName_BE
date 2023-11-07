@@ -3,6 +3,7 @@
 from typing import List
 
 from celery import shared_task
+from no_name.celery import app
 from django.core.mail import send_mail
 
 

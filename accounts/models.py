@@ -46,15 +46,26 @@ class User(AbstractBaseUser, PermissionsMixin):
         "phone_number",
         max_length=20,
         unique=True,
+        blank=True,
+        null=True,
+    )
+
+    name = models.CharField(
+    "name",
+    max_length=10,
+    blank=True,
+    null=True,
     )
 
     address = models.CharField(
         "adress",
         max_length=100,
         unique=True,
+        blank=True,
+        null=True,
     )
     
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
