@@ -22,24 +22,26 @@ from django.core.files.base import ContentFile
 from datetime import datetime
 from django.db.models import Count
 from django.shortcuts import render
-from .forms import ProductSizeForm
+from .forms import ProductSizeForm, ProductFrameForm
 
 
 class PostView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def get(self, request, quiz_id=None):
+    def get(self, request, post_id=None):
         if post_id:
+            target = get_object_or_404(get_user_model(), pk=post_id)
+
             # 상세보기
             user = request.user
             post = get_object_or_404(
-                Quiz.objects.annotate(
+                Post.objects.annotate(
                     likes_count=Count("likes", distinct=True),
                     comments_count=Count("comments", distinct=True),
                 ),
-                pk=quiz_id,
+                pk=post_id,
             )
-            serializer = PostDetailSerializer(quiz)
+            serializer = PostDetailSerializer(post)
             data = serializer.data
             if user.is_authenticated and post in user.likes.all():
                 data["is_liked"] = True
@@ -50,7 +52,7 @@ class PostView(APIView):
             # 전체보기
             posts = (
                 Post.objects.select_related("author")
-                .only("author__username", "created_at", "solved")
+                .only("author_username", "created_at")
                 .annotate(
                     likes_count=Count("likes", distinct=True),
                     comments_count=Count("comments", distinct=True),
@@ -76,40 +78,40 @@ class PostView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, quiz_id):
+    def delete(self, request, post):
         post = get_object_or_404(Post, pk=post_id)
         user = request.user
-        if quiz.author != user:
+        if post.author != user:
             return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
-        quiz.delete()
+        post.delete()
         return Response({"detail": "삭제되었습니다"}, status=status.HTTP_200_OK)
 
 
 class LikesView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, quiz_id):
+    def post(self, request, post_id):
         user = request.user
         post = get_object_or_404(Post, pk=post_id)
-        author = quiz.author
-        if user in quiz.likes.all():
+        author = post.author
+        if user in post.likes.all():
             return Response(
                 {"detail": "이미 좋아요를 눌렀습니다."}, status=status.HTTP_400_BAD_REQUEST
             )
         else:
-            quiz.likes.add(user)
+            post.likes.add(user)
             author.save()
             author.refresh_from_db()
             History.objects.create(user=author, action="likes", point=author.point)
             return Response(
-                {"likes_count": quiz.likes.count()}, status=status.HTTP_200_OK
+                {"likes_count": post.likes.count()}, status=status.HTTP_200_OK
             )
 
 
 class CommentsView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def get(self, request, quiz_id):
+    def get(self, request, post_id):
         post = get_object_or_404(Post, pk=post_id)
         # 일반 댓글 가져옴
         comments = post.comments.select_related("author").only(
@@ -120,15 +122,15 @@ class CommentsView(APIView):
             {"comments": comments_serializer.data}, status=status.HTTP_200_OK
         )
 
-    def post(self, request, quiz_id):
-        quiz = get_object_or_404(Quiz, pk=quiz_id)
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
         user = request.user
-        if user == quiz.author:
+        if user == post.author:
             return Response({"detail": "권한이 없습니다"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = CommentCreateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(author=user, quiz=quiz)
+            serializer.save(author=user, post=post)
             return Response(
                 {"data": serializer.data, "is_answer": False}, status=status.HTTP_200_OK
             )
@@ -157,45 +159,31 @@ class ProductView(APIView):
 
     def get(self, request, post_id):
         post = get_object_or_404(Post, pk=post_id)
-        # 일반 댓글 가져옴
-        comments = post.comments.select_related("author").only(
-            "author__username", "content", "created_at"
-        )
-        return Response(
-            {"comments": comments_serializer.data}, status=status.HTTP_200_OK
-        )
+        return Response(status=status.HTTP_200_OK)
 
     def choose_productsize(request):
         if request.method == 'POST':
             form = ProductSizeForm(request.POST)
             if form.is_valid():
-                selected_choice = form.cleaned_data['choice_field']
-                # Do something with the selected choice
+                productsize_selected_choice = form.cleaned_data['size']
         else:
             form = ProductSizeForm()
 
         return render(request, 'my_template.html', {'form': form})
 
-class ProductView(APIView):
+class ProductFrameView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get(self, request, post_id):
         post = get_object_or_404(Post, pk=post_id)
-        # 일반 댓글 가져옴
-        comments = post.comments.select_related("author").only(
-            "author__username", "content", "created_at"
-        )
-        return Response(
-            {"comments": comments_serializer.data}, status=status.HTTP_200_OK
-        )
+        return Response(status=status.HTTP_200_OK)
 
-    def choose_productsize(request):
+    def choose_productframe(request):
         if request.method == 'POST':
-            form = ProductSizeForm(request.POST)
+            form = ProductFrameForm(request.POST)
             if form.is_valid():
-                selected_choice = form.cleaned_data['choice_field']
-                # Do something with the selected choice
+                productframe_selected_choice = form.cleaned_data['frame']
         else:
-            form = ProductSizeForm()
+            form = ProductFrameForm()
 
         return render(request, 'my_template.html', {'form': form})
