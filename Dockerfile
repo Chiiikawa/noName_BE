@@ -22,5 +22,6 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 
+# nginx 사용할거면 80번 포트로 바꿔주기...
 EXPOSE 8000
 CMD ["python3", "./manage.py", "runserver", "0.0.0.0:8000"]
