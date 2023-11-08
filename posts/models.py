@@ -1,9 +1,6 @@
 from django.db import models
 from no_name.settings import AUTH_USER_MODEL
 
-
-
-# Create your models here.
 class Post(models.Model):
     author = models.ForeignKey(
         AUTH_USER_MODEL,
@@ -29,15 +26,25 @@ class Comment(models.Model):
         Post,
         on_delete=models.CASCADE,
         related_name="comments",
+        null=True,
     )
     author = models.ForeignKey(
         AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         related_name="comments",
+        null=True,
     )
     content = models.CharField("content", max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class ProductFrame(models.Model):
+    frametitle = models.CharField("title", max_length=20)
+    frame = models.ImageField(
+        upload_to="media/frameimage",
+        blank=True,
+        null=True,
+    )
    
 class Products(models.Model):
     posting = models.ForeignKey(
@@ -46,14 +53,6 @@ class Products(models.Model):
     related_name="products",
     )
     productsize = models.CharField("content", max_length=10)
-    productframe =model.ForeignKey(ProductFrame, blank=True, null=True)
-    cart = model.ManyToManyField(AUTH_USER_MODEL, related_name="cartitems")
-
-class ProductFrame(models.Model):
-    frametitle = model.CharField("title", max_length=20)
-    frame = models.ImageField(
-        upload_to="media/frameimage",
-        blank=True,
-        null=True,
-    )
-    
+    #ForeignKey 의 AUTH_USER_MODEL 맞는지 확인
+    productframe = models.ForeignKey(ProductFrame, on_delete=models.SET_NULL, blank=True, null=True)
+    cart = models.ManyToManyField(AUTH_USER_MODEL, related_name="cartitems")
