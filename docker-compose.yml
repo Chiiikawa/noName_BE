@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  # nginx
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80/tcp"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web
+
   web:
     build: ./django
     command: python manage.py runserver 0:8000
