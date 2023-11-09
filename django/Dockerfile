@@ -5,6 +5,7 @@ From python:3.11-slim
 ENV PYTHONUNBUFFERED=1
 RUN apt update
 
+
 # 가상환경 설치 && 실행
 RUN python3 -m venv myvenv
 RUN echo "source myvenv/bin/activate"
@@ -17,8 +18,8 @@ WORKDIR /srv/workspace/no Name_BE
 
 
 # requirements 설치
-COPY . .
 RUN pip install --upgrade pip
+COPY . .
 RUN pip install -r requirements.txt
 
 EXPOSE 8000
