@@ -50,5 +50,12 @@ class UserView(APIView):
        return Response(serializer.data, status=status.HTTP_200_OK)
    
 class LoginView(TokenObtainPairView):
-    permission_classes=[permissions.AllowAny]
-    serializer_class = CustomTokenObtainPairSerializer
+    #permission_classes=[permissions.AllowAny]
+    def post(self, request):
+        serializer = CustomTokenObtainPairSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
