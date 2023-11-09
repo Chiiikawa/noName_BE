@@ -10,6 +10,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 class UserManager(BaseUserManager):
     def create_user(self, password, **fields):
         user = self.model(**fields)
+        print(password)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -17,6 +18,7 @@ class UserManager(BaseUserManager):
     def create_superuser(self, **fields):
         fields.setdefault("is_admin", True)
         fields.setdefault("is_superuser", True)
+        fields.setdefault("is_active", True)    # 슈퍼유저 활성화 (사용한다는 의미)
         user = self.create_user(**fields)
         user.save(using=self._db)
         return user
