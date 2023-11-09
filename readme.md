@@ -6,6 +6,7 @@
 > Joshua H J. Gwak  
 >> DevOps Engineer & Team Leader
 <br/>
+
 > Jisu Kim  
 >> Backend Developer & Co-Leader
 <br/>
