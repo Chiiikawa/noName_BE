@@ -10,11 +10,14 @@
 > Jisu Kim  
 >> Backend Developer & Co-Leader
 <br/>
+
 > Sangchan Kang  
 >> Full-stack Developer
 <br/>
+
 > Sunhwa Shin  
 >> Frontend Developer & Designer
 <br/>
+
 > Deokyoung Yang  
 >> Machine Learning Engineer
