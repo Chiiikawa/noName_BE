@@ -5,11 +5,11 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenBlacklistView,
 )
-from .views import UserView
+from .views import UserView, LoginView
 
 urlpatterns = [
     # 로그인
-    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/", LoginView.as_view(), name="token_obtain_pair"),
     # 갱신
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # 로그아웃
