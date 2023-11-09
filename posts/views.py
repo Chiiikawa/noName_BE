@@ -52,7 +52,6 @@ class PostView(APIView):
             # 전체보기
             posts = (
                 Post.objects.select_related("author")
-                .only("author_username", "created_at")
                 .annotate(
                     likes_count=Count("likes", distinct=True),
                     comments_count=Count("comments", distinct=True),
