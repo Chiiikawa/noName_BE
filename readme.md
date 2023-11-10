@@ -15,7 +15,7 @@
 >> Full-stack Developer
 <br/>
 
-> Sunhwa Shin  
+> Seonhwa Shin  
 >> Frontend Developer & Designer
 <br/>
 
