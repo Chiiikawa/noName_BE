@@ -11,7 +11,7 @@
 >> Backend Developer & Co-Leader
 <br/>
 
-> Sangchan Kang  
+> Sangchan Gang  
 >> Full-stack Developer
 <br/>
 
