@@ -80,9 +80,9 @@ class KakaoView(APIView):
             'quantity': 1,
             'total_amount': 10000,  # 결제 금액
             'tax_free_amount': 0,
-            'approval_url': 'http://127.0.0.1:8000/success',  # 결제 성공 시 redirect URL
-            'cancel_url': 'http://127.0.0.1:8000/cancel',  # 결제 취소 시 redirect URL
-            'fail_url': 'http://127.0.0.1:8000/fail',  # 결제 실패 시 redirect URL
+            'approval_url': 'http://127.0.0.1:3000/success',  # 결제 성공 시 redirect URL
+            'cancel_url': 'http://127.0.0.1:3000/cancel',  # 결제 취소 시 redirect URL
+            'fail_url': 'http://127.0.0.1:3000/fail',  # 결제 실패 시 redirect URL
         }
 
         response = requests.post(url, headers=headers, data=data)

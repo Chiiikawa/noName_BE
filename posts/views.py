@@ -17,12 +17,14 @@ from posts.serializers import (
     ProductFrameSerializer,
 )
 #import deepl
-#import base64
+import base64
 from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from datetime import datetime
 from django.db.models import Count
 from django.shortcuts import render
 from .forms import ProductSizeForm, ProductFrameForm
+from PIL import Image
 
 
 class PostView(APIView):
@@ -64,19 +66,30 @@ class PostView(APIView):
 
     def post(self, request):
         data = request.data
-        encoded_image = data.get("image")
-        decoded_image = base64.b64decode(encoded_image)
-        current_time = int(datetime.now().timestamp())
-        image_file = ContentFile(decoded_image, name=f"{current_time}.webp")
-        data["image"] = image_file
+        
+        # 'image' 키가 요청 데이터에 존재하는지 확인
+        if 'image' in data:
+            image_data = data['image'].read()
+            encoded_image = base64.b64encode(image_data).decode('utf-8')
+            decoded_image = base64.b64decode(encoded_image)
+            # 파일명을 InMemoryUploadedFile에서 가져오기
+            image_name = data['image'].name
+            image_file = ContentFile(decoded_image, name=image_name)
+            data["image"] = image_file
+            
+        else:
+            # 처리할 수 있는 기본 동작을 여기에 추가하거나 에러를 반환하십시오.
+            return Response({"detail": "이미지 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = PostCreateSerializer(data=data)
+        
         if serializer.is_valid():
             user = request.user
             serializer.save(author=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        
     def delete(self, request, post):
         post = get_object_or_404(Post, pk=post_id)
         user = request.user
