@@ -1,5 +1,7 @@
+from django.contrib import admin
 from django.urls import path
 from . import views
+from .views import DalleAPIView
 
 urlpatterns = [
     # 게시물 조회/생성
@@ -14,6 +16,7 @@ urlpatterns = [
     #path("image/", views.ImageView.as_view(), name="image"),
     # 상품 조회/구매
     path("<int:post_id>/product/", views.ProductView.as_view(), name="comments"),
-
+    # Dalle 연결
+    path('dalle/', DalleAPIView.as_view(), name='dalle-api'),
 ]
 

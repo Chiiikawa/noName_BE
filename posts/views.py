@@ -1,7 +1,7 @@
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import generics, status, permissions
 from django.contrib.auth import get_user_model, authenticate
 #API 연결법
 #from no_name.settings import DEEPL_API_KEY, KARLO_API_KEY
@@ -17,12 +17,17 @@ from posts.serializers import (
     ProductFrameSerializer,
 )
 #import deepl
-#import base64
+import base64
 from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from datetime import datetime
 from django.db.models import Count
 from django.shortcuts import render
 from .forms import ProductSizeForm, ProductFrameForm
+from PIL import Image
+from .dalle import generate_image
+from .models import GeneratedImage
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 class PostView(APIView):
@@ -41,7 +46,7 @@ class PostView(APIView):
                 ),
                 pk=post_id,
             )
-            serializer = PostDetailSerializer(post)
+            serializer = PostDetailSerializer(post, context={'request': request})
             data = serializer.data
             if user.is_authenticated and post in user.likes.all():
                 data["is_liked"] = True
@@ -64,19 +69,30 @@ class PostView(APIView):
 
     def post(self, request):
         data = request.data
-        encoded_image = data.get("image")
-        decoded_image = base64.b64decode(encoded_image)
-        current_time = int(datetime.now().timestamp())
-        image_file = ContentFile(decoded_image, name=f"{current_time}.webp")
-        data["image"] = image_file
+                
+        # 'image' 키가 요청 데이터에 존재하는지 확인
+        if 'image' in data:
+            image_data = data['image'].read()
+            encoded_image = base64.b64encode(image_data).decode('utf-8')
+            decoded_image = base64.b64decode(encoded_image)
+            # 파일명을 InMemoryUploadedFile에서 가져오기
+            image_name = data['image'].name
+            image_file = ContentFile(decoded_image, name=image_name)
+            data["image"] = image_file
+            
+        else:
+            # 처리할 수 있는 기본 동작을 여기에 추가하거나 에러를 반환하십시오.
+            return Response({"detail": "이미지 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = PostCreateSerializer(data=data)
+        
         if serializer.is_valid():
             user = request.user
             serializer.save(author=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        
     def delete(self, request, post):
         post = get_object_or_404(Post, pk=post_id)
         user = request.user
@@ -186,3 +202,16 @@ class ProductFrameView(APIView):
             form = ProductFrameForm()
 
         return render(request, 'my_template.html', {'form': form})
+    
+class DalleAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        prompt = request.data.get('prompt')
+        if not prompt:
+            return Response({"error": "No prompt provided"}, status=400)
+
+        image_url = generate_image(prompt)
+
+        # 생성된 이미지 정보를 데이터베이스에 저장
+        generated_image = GeneratedImage(prompt=prompt, image_url=image_url)
+        generated_image.save()
+        return Response({"image": str(image_url)})

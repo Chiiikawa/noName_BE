@@ -12,9 +12,16 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+#from dotenv import load_dotenv
 import os
 from decouple import config
 
+# .env 파일 로드
+#load_dotenv()
+
+# 환경 변수에서 OpenAI API 키 불러오기
+#OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = config('OPENAI_API_KEY')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -163,7 +170,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=720),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1800),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -227,4 +234,3 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
 ]
-

@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenBlacklistView,
 )
-from .views import UserView, LoginView
+from .views import UserView, LoginView, KakaoView
 
 urlpatterns = [
     # 로그인
@@ -18,4 +18,8 @@ urlpatterns = [
     path("", UserView.as_view(), name="account"),
     # 프로필 정보조회
     path("<int:user_id>/", UserView.as_view(), name="account_profile"),
-]
+    # 카카오톡 결제
+    path('kakao-payment-request/', KakaoView.as_view(), name='kakao_payment_request'),
+    # 카카오톡 콜백
+    path('kakao-payment-approve/', KakaoView.as_view(), name='kakao_payment_approve'),
+    ]

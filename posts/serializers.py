@@ -26,6 +26,8 @@ class PostDetailSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     likes_count = serializers.IntegerField()
     comments_count = serializers.IntegerField()
+    # 이미지 URL 필드 추가
+    image_url = serializers.SerializerMethodField()
 
     def get_author(self, obj):
         return {
@@ -33,20 +35,21 @@ class PostDetailSerializer(serializers.ModelSerializer):
             "username": obj.author.username,
         }
 
-    def get_answer_len(self, obj):
-        return len(obj.correct_answer)
-
     class Meta:
         model = Post
         fields = (
-            "image",
-            "author",
+            'id', 
+            'author', 
+            'image', 
+            'image_url',            
             "created_at",
-            "updated_at",
             "likes_count",
-            "comments_count",
+            "comments_count"
         )
-
+    def get_image_url(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
 
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -86,3 +89,5 @@ class ProductFrameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ("image", "frame") #framecolor?
+        
+
