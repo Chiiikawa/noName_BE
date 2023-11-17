@@ -1,7 +1,7 @@
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import generics, status, permissions
 from django.contrib.auth import get_user_model, authenticate
 #API 연결법
 #from no_name.settings import DEEPL_API_KEY, KARLO_API_KEY
@@ -43,7 +43,7 @@ class PostView(APIView):
                 ),
                 pk=post_id,
             )
-            serializer = PostDetailSerializer(post)
+            serializer = PostDetailSerializer(post, context={'request': request})
             data = serializer.data
             if user.is_authenticated and post in user.likes.all():
                 data["is_liked"] = True
@@ -66,7 +66,7 @@ class PostView(APIView):
 
     def post(self, request):
         data = request.data
-        
+                
         # 'image' 키가 요청 데이터에 존재하는지 확인
         if 'image' in data:
             image_data = data['image'].read()
