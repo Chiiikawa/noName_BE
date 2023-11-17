@@ -25,6 +25,9 @@ from django.db.models import Count
 from django.shortcuts import render
 from .forms import ProductSizeForm, ProductFrameForm
 from PIL import Image
+from .dalle import generate_image
+from .models import GeneratedImage
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 class PostView(APIView):
@@ -199,3 +202,16 @@ class ProductFrameView(APIView):
             form = ProductFrameForm()
 
         return render(request, 'my_template.html', {'form': form})
+    
+class DalleAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        prompt = request.data.get('prompt')
+        if not prompt:
+            return Response({"error": "No prompt provided"}, status=400)
+
+        image_url = generate_image(prompt)
+
+        # 생성된 이미지 정보를 데이터베이스에 저장
+        generated_image = GeneratedImage(prompt=prompt, image_url=image_url)
+        generated_image.save()
+        return Response({"image": str(image_url)})

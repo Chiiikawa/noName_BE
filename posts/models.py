@@ -56,3 +56,10 @@ class Products(models.Model):
     #ForeignKey 의 AUTH_USER_MODEL 맞는지 확인
     productframe = models.ForeignKey(ProductFrame, on_delete=models.SET_NULL, blank=True, null=True)
     cart = models.ManyToManyField(AUTH_USER_MODEL, related_name="cartitems")
+
+class GeneratedImage(models.Model):
+    prompt = models.TextField() # 사용자가 입력한 프롬프트
+    image_url = models.URLField()   # 생성된 이미지 URL
+
+    def __str__(self):
+        return self.prompt
