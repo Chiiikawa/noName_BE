@@ -1,5 +1,6 @@
 from django.db import models
 from no_name.settings import AUTH_USER_MODEL
+from django.contrib.auth.models import User
 
 class Post(models.Model):
     author = models.ForeignKey(
@@ -59,7 +60,8 @@ class Products(models.Model):
 
 class GeneratedImage(models.Model):
     prompt = models.TextField() # 사용자가 입력한 프롬프트
-    image_url = models.URLField()   # 생성된 이미지 URL
+    image_url = models.ImageField(upload_to="generated_images/") # 생성된 이미지 URL 을 generated_images로 저장
+    #created_at = models.DateTimeField(auto_now_add=True)   
 
     def __str__(self):
         return self.prompt

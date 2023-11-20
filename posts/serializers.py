@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Comment, Products, ProductFrame
+from .models import Post, Comment, Products, ProductFrame, GeneratedImage
 
 
 class PostListSerializer(serializers.ModelSerializer):
@@ -89,5 +89,9 @@ class ProductFrameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ("image", "frame") #framecolor?
-        
+
+class GeneratedImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeneratedImage
+        fields = ['id', 'prompt', 'image', 'created_at']
 

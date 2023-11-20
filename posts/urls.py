@@ -12,8 +12,6 @@ urlpatterns = [
     path("<int:post_id>/likes/", views.LikesView.as_view(), name="likes"),
     # 댓글 조회/등록
     path("<int:post_id>/comments/", views.CommentsView.as_view(), name="comments"),
-    # apikey 요청
-    #path("image/", views.ImageView.as_view(), name="image"),
     # 상품 조회/구매
     path("<int:post_id>/product/", views.ProductView.as_view(), name="comments"),
     # Dalle 연결

@@ -1,7 +1,8 @@
+from rest_framework import views, generics, status, permissions
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics, status, permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth import get_user_model, authenticate
 #API 연결법
 #from no_name.settings import DEEPL_API_KEY, KARLO_API_KEY
@@ -15,6 +16,7 @@ from posts.serializers import (
     CommentCreateSerializer,
     ProductSerializer,
     ProductFrameSerializer,
+    GeneratedImageSerializer,
 )
 #import deepl
 import base64
@@ -28,10 +30,12 @@ from PIL import Image
 from .dalle import generate_image
 from .models import GeneratedImage
 from django.core.serializers.json import DjangoJSONEncoder
+#from .utils import generate_image  # 이곳에서 DALL-E 관련 함수를 import
 
 
 class PostView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    parser_classes = (MultiPartParser, FormParser)
 
     def get(self, request, post_id=None):
         if post_id:
@@ -67,7 +71,7 @@ class PostView(APIView):
             serializer = PostListSerializer(posts, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         data = request.data
                 
         # 'image' 키가 요청 데이터에 존재하는지 확인
@@ -159,23 +163,6 @@ class CommentsView(APIView):
             )
         return Response({"detail": "유효하지 않은 댓글"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class ImageView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        user = request.user
-        prompt = request.data.get("prompt")
-        print(prompt)
-        user.save()
-        user.refresh_from_db()
-        History.objects.create(user=user, action="create", point=user.point)
-        #trnaslator와 Dall-E API 연결할부분
-        #translator = deepl.Translator(DEEPL_API_KEY)
-        #result = translator.translate_text(prompt, target_lang="EN-US")
-        return Response(
-            {"prompt": result.text, "API_KEY": KARLO_API_KEY}, status=status.HTTP_200_OK
-        )
         
 class ProductView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]

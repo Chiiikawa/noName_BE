@@ -6,6 +6,7 @@ from rest_framework.generics import get_object_or_404
 from accounts.serializers import (
     UserCreateSerializer,
     CustomTokenObtainPairSerializer,
+    UserProfileSerializer,
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -30,7 +31,8 @@ class UserView(APIView):
             return Response({"message": "가입완료!"}, status=status.HTTP_201_CREATED)
         else:
             return Response({"message":f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
-            
+    '''
+    #UserProfileView 작성하면서 User 수정과 프로필 보기 기능은 필요없어짐   
     def put(self, request):
         if not request.user.is_authenticated:
             return Response({"detail": "권한이 없습니다!"}, status=status.HTTP_403_FORBIDDEN)
@@ -52,6 +54,7 @@ class UserView(APIView):
                )
        serializer = UserProfileSerializer(target)
        return Response(serializer.data, status=status.HTTP_200_OK)
+       '''
    
 class LoginView(TokenObtainPairView):
     #permission_classes=[permissions.AllowAny]
@@ -116,3 +119,27 @@ class KakaoView(APIView):
             # 가맹점의 결제 승인 처리 결과에 따른 로직 구현
             return JsonResponse(approve_result)
         return JsonResponse({"message": "잘못된 요청입니다."})
+    
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+    
+    #프로필 정보 보기는 로그인한 자신만 조회/수정이 가능함.
+    def retrieve(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return super().retrieve(request, *args, **kwargs)
+        else:
+            return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def update(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated and self.get_object() == self.request.user:
+            return super().update(request, *args, **kwargs)
+        else:
+            return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+    def partial_update(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)

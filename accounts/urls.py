@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenBlacklistView,
 )
-from .views import UserView, LoginView, KakaoView
+from .views import UserView, LoginView, KakaoView, UserProfileView
 
 urlpatterns = [
     # 로그인
@@ -14,8 +14,10 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # 로그아웃
     path("token/blacklist/", TokenBlacklistView.as_view(), name="token_blacklist"),
-    # 회원가입/회원수정
+    # 회원가입
     path("", UserView.as_view(), name="account"),
+    # 프로필 조회/수정
+    path('profile/', UserProfileView.as_view(), name='user-profile'),
     # 프로필 정보조회
     path("<int:user_id>/", UserView.as_view(), name="account_profile"),
     # 카카오톡 결제
