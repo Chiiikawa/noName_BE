@@ -80,6 +80,14 @@ class PostView(APIView):
             image_file = ContentFile(decoded_image, name=image_name)
             data["image"] = image_file
             
+        # DALL-E 이미지 생성 및 저장
+            prompt = data.get('prompt')  # DALL-E에 전달할 프롬프트
+            if prompt:
+                image_url = generate_image(prompt)  # generate_image 함수는 DALL-E를 사용하여 이미지를 생성하는 함수
+                generated_image = GeneratedImage(prompt=prompt, image_url=image_url)
+                generated_image.save()
+                data["dalle_image_url"] = str(image_url)  # 생성된 이미지의 URL을 데이터에 추가
+            
         else:
             # 처리할 수 있는 기본 동작을 여기에 추가하거나 에러를 반환하십시오.
             return Response({"detail": "이미지 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
