@@ -9,7 +9,7 @@ class Post(models.Model):
         related_name="posts",
         null = True,
     )
-    image = models.ImageField(
+    generated_image = models.ImageField(
         upload_to="media/postimage",
         default="media/postimage/defaultpostimage.png",
         blank=True,

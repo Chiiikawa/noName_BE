@@ -71,33 +71,26 @@ class PostView(APIView):
             serializer = PostListSerializer(posts, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
-        data = request.data
-                
-        # 'image' 키가 요청 데이터에 존재하는지 확인
-        if 'image' in data:
-            image_data = data['image'].read()
+    def _process_image_data(self, data, key='image'):
+        if key in data:
+            image_data = data[key].read()
             encoded_image = base64.b64encode(image_data).decode('utf-8')
             decoded_image = base64.b64decode(encoded_image)
-            # 파일명을 InMemoryUploadedFile에서 가져오기
-            image_name = data['image'].name
+            image_name = data[key].name
             image_file = ContentFile(decoded_image, name=image_name)
-            data["image"] = image_file
-            
-        # DALL-E 이미지 생성 및 저장
-            prompt = data.get('prompt')  # DALL-E에 전달할 프롬프트
-            if prompt:
-                image_url = generate_image(prompt)  # generate_image 함수는 DALL-E를 사용하여 이미지를 생성하는 함수
-                generated_image = GeneratedImage(prompt=prompt, image_url=image_url)
-                generated_image.save()
-                data["dalle_image_url"] = str(image_url)  # 생성된 이미지의 URL을 데이터에 추가
-            
-        else:
-            # 처리할 수 있는 기본 동작을 여기에 추가하거나 에러를 반환하십시오.
-            return Response({"detail": "이미지 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            data[key] = image_file
+            return True
+        return False
+    
+    def post(self, request, *args, **kwargs):
+        data = request.data
+
+        # Ensure that a generated image is required
+        if not self._process_image_data(data, key='generated_image'):
+            return Response({"detail": "A generated image is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = PostCreateSerializer(data=data)
-        
+
         if serializer.is_valid():
             user = request.user
             serializer.save(author=user)

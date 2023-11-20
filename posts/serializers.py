@@ -54,7 +54,13 @@ class PostDetailSerializer(serializers.ModelSerializer):
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ("image", "content")
+        fields = ['generated_image', 'content']
+
+    def validate_generated_image(self, value):
+        # Ensure that a generated image is provided
+        if not value:
+            raise serializers.ValidationError("A generated image is required.")
+        return value
 
 
 class CommentListSerializer(serializers.ModelSerializer):
