@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
 )
 from .models import User
-from rest_framework import status,permissions
+from rest_framework import status,permissions,generics
 from rest_framework.decorators import APIView, permission_classes
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
