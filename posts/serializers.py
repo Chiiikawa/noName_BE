@@ -2,6 +2,11 @@ from rest_framework import serializers
 from .models import Post, Comment, Products, ProductFrame, GeneratedImage
 
 
+class GeneratedImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeneratedImage
+        fields = ['id', 'prompt', 'image_url']
+
 class PostListSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     likes_count = serializers.IntegerField()
@@ -54,7 +59,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['generated_image', 'content']
+        fields = ['author', 'content', 'generated_image']
 
     def validate_generated_image(self, value):
         # Ensure that a generated image is provided
@@ -96,8 +101,5 @@ class ProductFrameSerializer(serializers.ModelSerializer):
         model = Post
         fields = ("image", "frame") #framecolor?
 
-class GeneratedImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GeneratedImage
-        fields = ['id', 'prompt', 'image', 'created_at']
+
 

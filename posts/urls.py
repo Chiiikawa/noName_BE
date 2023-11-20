@@ -16,5 +16,7 @@ urlpatterns = [
     path("<int:post_id>/product/", views.ProductView.as_view(), name="comments"),
     # Dalle 연결
     path('dalle/', DalleAPIView.as_view(), name='dalle-api'),
+    # Dalle 이미지 조회 (개별 이미지를 가져오기 위해 <int:pk> 추가)
+    path('dalle/<int:image_id>/', views.DalleAPIView.as_view(), name='dalle-api-detail'),
 ]
 

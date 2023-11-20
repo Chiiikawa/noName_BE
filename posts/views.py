@@ -32,6 +32,43 @@ from .models import GeneratedImage
 from django.core.serializers.json import DjangoJSONEncoder
 #from .utils import generate_image  # 이곳에서 DALL-E 관련 함수를 import
 
+class DalleAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        prompt = request.data.get('prompt')
+        if not prompt:
+            return Response({"error": "No prompt provided"}, status=400)
+
+        image_url = generate_image(prompt)
+
+        # 생성된 이미지 정보를 데이터베이스에 저장
+        generated_image = GeneratedImage(prompt=prompt, image_url=image_url)
+        generated_image.save()
+            
+        # 저장된 이미지의 pk 반환
+        response_data = {"image": str(image_url), "pk": generated_image.pk}
+        return Response(response_data, status=status.HTTP_201_CREATED)
+    
+    def get(self, request, image_id=None, *args, **kwargs):
+        # 이미지 ID를 이용하여 개별 이미지 가져오기
+        if image_id:
+            try:
+                generated_image = GeneratedImage.objects.get(pk=image_id)
+            except GeneratedImage.DoesNotExist:
+                return Response({"error": "Image not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # 가져온 이미지를 직렬화
+            serializer = GeneratedImageSerializer(generated_image)
+            
+            return Response(serializer.data)
+
+        # 이미지 ID가 주어지지 않은 경우 모든 생성된 이미지를 가져오기
+        generated_images = GeneratedImage.objects.all()
+
+        # 가져온 이미지들을 직렬화
+        serializer = GeneratedImageSerializer(generated_images, many=True)
+
+        return Response(serializer.data)
+
 
 class PostView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -93,7 +130,9 @@ class PostView(APIView):
 
         if serializer.is_valid():
             user = request.user
-            serializer.save(author=user)
+            # Associate the generated image with the post
+            post = serializer.save(author=user)
+            generated_image = post.generated_image  # Access the associated generated image
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -191,15 +230,3 @@ class ProductFrameView(APIView):
 
         return render(request, 'my_template.html', {'form': form})
     
-class DalleAPIView(APIView):
-    def post(self, request, *args, **kwargs):
-        prompt = request.data.get('prompt')
-        if not prompt:
-            return Response({"error": "No prompt provided"}, status=400)
-
-        image_url = generate_image(prompt)
-
-        # 생성된 이미지 정보를 데이터베이스에 저장
-        generated_image = GeneratedImage(prompt=prompt, image_url=image_url)
-        generated_image.save()
-        return Response({"image": str(image_url)})

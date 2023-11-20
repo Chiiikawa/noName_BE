@@ -2,6 +2,14 @@ from django.db import models
 from no_name.settings import AUTH_USER_MODEL
 from django.contrib.auth.models import User
 
+class GeneratedImage(models.Model):
+    prompt = models.TextField() # 사용자가 입력한 프롬프트
+    image_url = models.ImageField(upload_to="generated_images/") # 생성된 이미지 URL 을 generated_images로 저장
+    #created_at = models.DateTimeField(auto_now_add=True)   
+
+    def __str__(self):
+        return self.prompt
+
 class Post(models.Model):
     author = models.ForeignKey(
         AUTH_USER_MODEL,
@@ -9,10 +17,10 @@ class Post(models.Model):
         related_name="posts",
         null = True,
     )
-    generated_image = models.ImageField(
-        upload_to="media/postimage",
-        default="media/postimage/defaultpostimage.png",
-        blank=True,
+    generated_image = models.ForeignKey(
+        GeneratedImage,
+        on_delete=models.SET_NULL,
+        related_name="posts",
         null=True,
     )
     content = models.CharField("content", max_length=300)
@@ -58,10 +66,3 @@ class Products(models.Model):
     productframe = models.ForeignKey(ProductFrame, on_delete=models.SET_NULL, blank=True, null=True)
     cart = models.ManyToManyField(AUTH_USER_MODEL, related_name="cartitems")
 
-class GeneratedImage(models.Model):
-    prompt = models.TextField() # 사용자가 입력한 프롬프트
-    image_url = models.ImageField(upload_to="generated_images/") # 생성된 이미지 URL 을 generated_images로 저장
-    #created_at = models.DateTimeField(auto_now_add=True)   
-
-    def __str__(self):
-        return self.prompt
