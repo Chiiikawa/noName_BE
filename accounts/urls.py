@@ -18,8 +18,6 @@ urlpatterns = [
     path("", UserView.as_view(), name="account"),
     # 프로필 조회/수정
     path('profile/', UserProfileView.as_view(), name='user-profile'),
-    # 프로필 정보조회
-    path("<int:user_id>/", UserView.as_view(), name="account_profile"),
     # 카카오톡 결제
     path('kakao-payment-request/', KakaoView.as_view(), name='kakao_payment_request'),
     # 카카오톡 콜백

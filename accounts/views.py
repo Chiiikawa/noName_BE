@@ -135,7 +135,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         else:
             return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
-    def update(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         if self.request.user.is_authenticated and self.get_object() == self.request.user:
             return super().update(request, *args, **kwargs)
         else:
