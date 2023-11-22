@@ -2,7 +2,7 @@ from django.db import models    # models을 사용할거다~
 from django.contrib.auth.models import (
     BaseUserManager,    # Django의 기본 UserManager를 상속받아 custom해서 사용
     AbstractBaseUser,   # Django의 기본 Usermodel을 상속받아 custom해서 사용
-    PermissionsMixin,   # 
+    PermissionsMixin,
 )
 # django의 사용자 인증 시스템에서 사용자 이름의 유효성을 검사하기 위해 UnicodeUsernameValidator 클래스를 가져오는 것.
 from django.contrib.auth.validators import UnicodeUsernameValidator 
@@ -76,15 +76,15 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
         null=True,
     )
     
-    is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)   # 사용자의 활성화 상태를 나타내는 필드
+    is_admin = models.BooleanField(default=False)   # 사용자가 관리자인지 여부를 나타내는 필드
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    objects = UserManager()
+    objects = UserManager() # 사용자 모델에 대한 사용자 관리자('UserManager')인스턴스를 할당한다. 이는 사용자 생성 및 관리와 관련된 추가 메서드를 제공함.
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username", "password"]
+    REQUIRED_FIELDS = ["username", "password", "name"]
 
     def __str__(self):
         return self.username
@@ -92,5 +92,4 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
     @property
     def is_staff(self):
         return self.is_admin
-
 

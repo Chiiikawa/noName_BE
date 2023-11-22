@@ -26,7 +26,7 @@ class UserView(APIView):
         else:
             return Response({"message":f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
 
-   
+
 class LoginView(TokenObtainPairView):
     def post(self, request):
         serializer = CustomTokenObtainPairSerializer(data=request.data)
