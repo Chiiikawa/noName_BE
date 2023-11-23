@@ -107,12 +107,12 @@ WSGI_APPLICATION = 'no_name.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        # 'USER' : config('DATABASE_USER'),
-        # 'PASSWORD' : config('DATABASE_PASSWORD'),
-        # 'HOST' :  config('DATABASE_HOST'),
-        # 'PORT' : config('DATABASE_PORT'),
+        'ENGINE': config('DATABASE_ENGINE'),
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT'),
     }
 }
 
@@ -204,3 +204,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
 ]
+
+#ALLOWED HOST 설정
+ALLOWED_HOSTS = config("ALLOWED_HOSTS")
