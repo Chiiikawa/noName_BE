@@ -16,22 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from no_name import settings
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path('', include('allauth.urls')),
     path('accounts/', include('accounts.urls')),
     path('posts/', include('posts.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    #rest-auth 이름으로 시작하는 url들을 rest_auth.urls로 연결해준다.
-    #path('^rest-auth/', include('rest_auth.urls')),
-    #path('^rest-auth/registration/', include('rest_auth.registration.urls'))
-    path('dj-rest-auth/', include('dj_rest_auth.urls'))
+
 ]

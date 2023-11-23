@@ -16,12 +16,10 @@ WORKDIR /srv/workspace/no Name_BE
 
 
 # requirements 설치
-RUN pip install --upgrade pip
 COPY . .
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN pip install psycopg2-binary
-RUN python3 manage.py makemigrations
-RUN python3 manage.py migrate
-RUN python3 manage.py collectstatic
+
 
 EXPOSE 8000
