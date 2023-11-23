@@ -5,11 +5,11 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from . import views
-from .views import UserView, LoginView, UserProfileView, KakaoLogin
+from .views import UserView, LoginView, UserProfileView, KakaoLoginView
 
 urlpatterns = ([
-    # kakao
-    path('kakao/login/', views.KakaoLogin.as_view(), name='kakao_login'),
+    # kakao 로그인
+    path("kakao-login/", views.KakaoLoginView.as_view(), name="kakao_login"),
     # 로그인
     path("token/", LoginView.as_view(), name="token_obtain_pair"),
     # 갱신

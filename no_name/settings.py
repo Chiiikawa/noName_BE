@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-import os
+import os, json
 from decouple import config
 
 OPENAI_API_KEY = config('OPENAI_API_KEY')
@@ -39,24 +39,27 @@ SITE_ID = 1
 # Application definition
 
 INSTALLED_APPS = [
+    # CORS Headers 
     "corsheaders",
+    # django 기본 App
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # jwt 인증
     'rest_framework',
-    'rest_framework.authtoken',
     "rest_framework_simplejwt",
-    'dj_rest_auth',
-    'allauth',
+    'rest_framework.authtoken',
+    # 기타
     'accounts',
     'posts',
     'django.contrib.sites',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-    'allauth.socialaccount.providers.kakao',
+    'dj_rest_auth',
+    'allauth'
 ]
 
 # Cors, Common: cors-headers 설정
@@ -76,17 +79,18 @@ MIDDLEWARE = [
 ]
 
 # 인증 기능을 위한 AUTHENTICATION 설정
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-    'social_core.backends.kakao.KakaoOAuth2',
-]
+#AUTHENTICATION_BACKENDS = [
+    #'django.contrib.auth.backends.ModelBackend',
+    #'allauth.account.auth_backends.AuthenticationBackend',
+    #'social_core.backends.kakao.KakaoOAuth2',
+#]
 
 # 기본 인증 클래스를 simple-jwt token으로 변경하기 위한 설정.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+        'rest_framework.authentication.SessionAuthentication',
+    ),
 }
 
 ROOT_URLCONF = 'no_name.urls'
@@ -174,11 +178,11 @@ AUTH_USER_MODEL = 'accounts.User'
 
 REST_USE_JWT = True
 
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None # username 필드 사용 x
-ACCOUNT_EMAIL_REQUIRED = True            # email 필드 사용 o
-ACCOUNT_USERNAME_REQUIRED = False        # username 필드 사용 x
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none' # 회원가입 과정에서 이메일 인증 사용 X
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = None # username 필드 사용 x
+# ACCOUNT_EMAIL_REQUIRED = True            # email 필드 사용 o
+# ACCOUNT_USERNAME_REQUIRED = False        # username 필드 사용 x
+# ACCOUNT_AUTHENTICATION_METHOD = 'email'
+# ACCOUNT_EMAIL_VERIFICATION = 'none' # 회원가입 과정에서 이메일 인증 사용 X
 
 # simplejwt 설정
 SIMPLE_JWT = {
@@ -215,21 +219,11 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+# 모든 URL에 대해 CORS 예외 모두 적용
+CORS_ALLOW_ALL_ORIGINS = True
+
 # CORS 예외 URL 설정
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:3000",
-    "http://localhost:3000",
-]
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSSION_CLASSES' : (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-    
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
-
+# CORS_ALLOWED_ORIGINS = [
+#     "http://127.0.0.1:3000",
+#     "http://localhost:3000",
+# ]

@@ -41,9 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
         max_length=50,
         unique=True,
     )   # 사용자의 이메일을 저장하는 필드. 최대 길이는 50자이며, 이메일은 고유해야 한다.
-    profile_image = models.ImageField(
-        upload_to="media/userProfile",
-        default="media/userProfile/default.png",
+    profile_image = models.URLField(
         blank=True,
         null=True,
     )   # 사용자의 프로필 이미지를 저장하는 필드. 이미지는 'media/userProfile' 디렉토리에 저장되며, 기본값으로 'media/userPProfile/default.png'가 설정된다. 이필드는 선택 사항입니다.
@@ -55,8 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
         null=True,
     )   # 사용자의 전화번호를 저장하는 필드. 최대 길이는 20이며, 전화번호는 고유해야 한다. 이 필드 역시 선택사항
 
-    name = models.CharField(
-        "name",
+    nickname = models.CharField(
+        "nickname",
         max_length=10,
         blank=True,
         null=True,
@@ -75,6 +73,15 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
         blank=True,
         null=True,
     )
+    LOGIN_TYPE = [
+        ("normal", "일반"),
+        ("kakao", "카카오"),
+    ]
+    login_type = models.CharField(
+        "로그인 타입", max_length=10, choices=LOGIN_TYPE, default="normal", null=True
+    )
+
+
     
     is_active = models.BooleanField(default=True)   # 사용자의 활성화 상태를 나타내는 필드
     is_admin = models.BooleanField(default=False)   # 사용자가 관리자인지 여부를 나타내는 필드
@@ -84,7 +91,7 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
     objects = UserManager() # 사용자 모델에 대한 사용자 관리자('UserManager')인스턴스를 할당한다. 이는 사용자 생성 및 관리와 관련된 추가 메서드를 제공함.
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username", "password", "name"]
+    REQUIRED_FIELDS = ["username", "password"]
 
     def __str__(self):
         return self.username

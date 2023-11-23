@@ -13,7 +13,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "password",
             "profile_image",
             "phone_number",
-            "name",
+            "nickname",
             "address",
             'zipcode',
         )
@@ -49,7 +49,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "email",
             "profile_image",
             "phone_number",
-            "name",
+            "nickname",
             "address",
             "zipcode",
             "is_active",
@@ -61,7 +61,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Only update the fields that can be modified by the user
         instance.phone_number = validated_data.get('phone_number', instance.phone_number)
-        instance.name = validated_data.get('name', instance.name)
+        instance.nickname = validated_data.get('nickname', instance.nickname)
         instance.address = validated_data.get('address', instance.address)
         instance.zipcode = validated_data.get('zipcode', instance.zipcode)
         instance.profile_image = validated_data.get('profile_image', instance.profile_image)

@@ -16,7 +16,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["username", "email", "name", "password"]
+        fields = ["username", "email", "nickname", "password"]
 
     # def clean_password2(self):  # 비밀번호와 비밀번호 확인 필드가 일치하는지 검증.
     #     # Check that the two password entries match
@@ -40,7 +40,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "profile_image", "name", "phone_number", "address", "zipcode", "is_active", "is_admin"]
+        fields = ["username", "email", "password", "profile_image", "nickname", "phone_number", "address", "zipcode", "is_active", "is_admin"]
 
 
 class UserAdmin(BaseUserAdmin):
@@ -50,7 +50,7 @@ class UserAdmin(BaseUserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ["id", "username", "email", "name", "is_admin", "is_active"] # 사용자 목룍에 표시할 필드를 지정.
+    list_display = ["id", "username", "email", "nickname", "is_admin", "is_active"] # 사용자 목룍에 표시할 필드를 지정.
     list_filter = ["is_admin"]  # 사용자를 필터링할 수 있는 필터 옵션을 설정함.
     fieldsets = [
         (
@@ -59,7 +59,7 @@ class UserAdmin(BaseUserAdmin):
                 "fields": [
                     "username",
                     "email",
-                    "name",
+                    "nickname",
                     "password",
                 ]
             },
@@ -73,7 +73,7 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ["wide"],
-                "fields": ["username", "email", "name", "password1", "password2"],
+                "fields": ["username", "email", "nickname", "password1", "password2"],
             },
         ),
     ]
