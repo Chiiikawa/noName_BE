@@ -1,13 +1,15 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 from . import views
-from .views import UserView, LoginView, UserProfileView
+from .views import UserView, LoginView, UserProfileView, KakaoLogin
 
-urlpatterns = [
+urlpatterns = ([
+    # kakao
+    path('kakao/login/', views.KakaoLogin.as_view(), name='kakao_login'),
     # 로그인
     path("token/", LoginView.as_view(), name="token_obtain_pair"),
     # 갱신
@@ -17,3 +19,4 @@ urlpatterns = [
     # 프로필 조회/수정
     path('profile/', UserProfileView.as_view(), name='user-profile'),
 ]
+)

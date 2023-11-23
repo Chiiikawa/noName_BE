@@ -11,6 +11,13 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+import os
+from decouple import config
+
+OPENAI_API_KEY = config('OPENAI_API_KEY')
+SOCIAL_AUTH_KAKAO_KEY = config('KAKAO_API_KEY')
+SOCIAL_AUTH_KAKAO_SECRET = config('KAKAO_SECRET_KEY')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,10 +34,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SITE_ID = 1
 
 # Application definition
 
 INSTALLED_APPS = [
+    "corsheaders",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,20 +47,47 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     "rest_framework_simplejwt",
+    'dj_rest_auth',
+    'allauth',
     'accounts',
     'posts',
+    'django.contrib.sites',
+    'allauth.socialaccount',
+    'dj_rest_auth.registration',
+    'allauth.socialaccount.providers.kakao',
 ]
 
+# Cors, Common: cors-headers 설정
+# Authentication: dj-rest-auth 설정
+# WhiteNoise, Security: collectstatic을 위한 whitenoise 설정
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",    # 다른 도메인의 fontend에서 backend의 AJAX요청과 같은 크로스 오리진요청을 허용하거나 제한하는데 사용.
+    'django.middleware.common.CommonMiddleware',    # 여러 일반적인 작업을 처리함.
+    'django.middleware.security.SecurityMiddleware',    # 보안 관련 헤더를 설정하고, 다양한 보안 관련 기능을 제공함.
+    'django.contrib.sessions.middleware.SessionMiddleware', # 세션 관리를 위한 미들웨어로, 사용자의 세션을 처리함.
+    'django.middleware.csrf.CsrfViewMiddleware',    # CSRF 공격으로부터 보호하기 위해 사용됨. POST 요청에 대한 CSRF 토큰 검사를 함.
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # 사용자 인증을 처리함.
+    'django.contrib.messages.middleware.MessageMiddleware', # 임시 메세지 저장과 관련된 기능을 제공함. 요청 간에 메세지를 전달할 수 있음.
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',   # 클릭재킹 공격으로부터 보호하기 위해 사용됨.
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # django 프로젝트의 정적 파일을 서비스하는데 최적화된 방법을 제공함.
+    "allauth.account.middleware.AccountMiddleware",
 ]
+
+# 인증 기능을 위한 AUTHENTICATION 설정
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'social_core.backends.kakao.KakaoOAuth2',
+]
+
+# 기본 인증 클래스를 simple-jwt token으로 변경하기 위한 설정.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 ROOT_URLCONF = 'no_name.urls'
 
@@ -81,6 +117,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        # 'USER' : config('DATABASE_USER'),
+        # 'PASSWORD' : config('DATABASE_PASSWORD'),
+        # 'HOST' :  config('DATABASE_HOST'),
+        # 'PORT' : config('DATABASE_PORT'),
     }
 }
 
@@ -107,18 +147,20 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'ko-kr'
+LANGUAGE_CODE = 'ko-kr' # Admin 기본 언어 설정
 
-TIME_ZONE = 'Asia/Seoul'
+TIME_ZONE = 'Asia/Seoul' # 시간 설정
 
-USE_I18N = True
+USE_I18N = True # Django의 번역 시스템 활성화 여부
 
-USE_TZ = True
+USE_TZ = True # Django의 시간 인식 활성화 여부
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # django가 collectstatic 명령을 실행할 때 정적 파일을 수집하여 저장할 디렉토리의 경로를 지정함.
+ # static_url 은 정적 파일에 접근할 때 사용되는 URL을 설정함. ex) STATIC_URL 이 static/로 설정되어 있으면, 정적 파일들은 http://noname.com/static/와 같은 URL을 통해 접근됨.
 STATIC_URL = 'static/'
 
 # Default primary key field type
@@ -126,4 +168,68 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# 관리자 유저 모델 설정
 AUTH_USER_MODEL = 'accounts.User'
+
+REST_USE_JWT = True
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None # username 필드 사용 x
+ACCOUNT_EMAIL_REQUIRED = True            # email 필드 사용 o
+ACCOUNT_USERNAME_REQUIRED = False        # username 필드 사용 x
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none' # 회원가입 과정에서 이메일 인증 사용 X
+
+# simplejwt 설정
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1800),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": "",
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JSON_ENCODER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+    "JTI_CLAIM": "jti",
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+    "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
+    "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+}
+
+# CORS 예외 URL 설정
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSSION_CLASSES' : (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+    
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
