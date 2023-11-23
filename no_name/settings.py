@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-ivk8s1us(7d$t!tl_bh@(8@_g_qj)28!_sg9i61$5z(vo2253p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config("ALLOWED_HOSTS")
 
 
 # Application definition
@@ -201,9 +201,6 @@ SIMPLE_JWT = {
 
 # CORS 예외 URL 설정
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:3000",
-    "http://localhost:3000",
+    config("ALLOWED_HOSTS"),
+    config("LOCAL_HOSTS"),
 ]
-
-#ALLOWED HOST 설정
-ALLOWED_HOSTS = config("ALLOWED_HOSTS")
