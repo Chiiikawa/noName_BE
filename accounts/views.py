@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import (
 )
 from .models import User
 from decouple import config
+import requests
 
 
 # 회원가입
@@ -65,37 +66,41 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 # kakao 소셜로그인
 class KakaoLoginView(APIView):
     def post(self, request):
-        code = request.data.get('code', None)
-        token_url = f'https://kauth.kakao.com/oauth/token'
+        print("request.data:", request.data)
+        code = request.data.get('code')
+        get_code = code.split('?code='[-1])
+        print('code:', code)
         redirect_url = config('REDIRECT_URI')
         
-        if code is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        
-        access_token = request.post(
-            token_url,
+        #if code is None:
+            #return Response(status=status.HTTP_400_BAD_REQUEST)
+  
+        access_token = requests.post(
+            "https://kauth.kakao.com/oauth/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
             data={
                 'grant_type': 'authorization_code',
-                'client_id': KAKAO_API_KEY,
-                'redirect_url': redirect_url,
-                'client_secret': KAKAO_SECRET_KEY,
+                'client_id': config('KAKAO_API_KEY'),
+                'redirect_url': config('REDIRECT_URI'),
+                'client_secret': config('KAKAO_SECRET_KEY'),
+                'code': get_code,
             },
-            headers={'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'},
         )
-        
+        print("access_token.json:", access_token.json)
         access_token = access_token.json().get('access_token')
-        user_data_request = request.get(
+        user_data_request = requests.get(
             'https://kapi.kakao.com/v2/user/me',
             headers={
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
             },
         )
-        user_datajson = user_data_request.json()
-        user_data = user_datajson.get('kakao_account').get('profile')
-        email = user_datajson.get('kakao_account').get('email')
-        nickname = user_data.get('nickname'),
-        image = user_data.get('thumbnail_image_url', None)
+        user_data = user_data.json()
+        print("user_data:", user_data)
+        kakao_account = user_data.get('kakao_account')
+        user_email = kakao_account.get('kakao_account').get('email')
+        user_nickname = kakao_account.get('nickname'),
+        user_image = kakao_account.get('profile')['profile_image_url']
         
         ran_str = ''
         ran_num = random.randint(0, 99999)
