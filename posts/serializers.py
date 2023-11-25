@@ -16,8 +16,8 @@ class PostCreateSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['author', 'title', 'content', 'generated_image']
 
-    def validate_generated_image(self, value):
-        # Ensure that a generated image is provided
-        if not value:
-            raise serializers.ValidationError("A generated image is required.")
-        return value
+    # def validate_generated_image(self, value):
+    #     # Ensure that a generated image is provided
+    #     if not value:
+    #         raise serializers.ValidationError("A generated image is required.")
+    #     return value

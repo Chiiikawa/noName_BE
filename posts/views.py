@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status, permissions, generics
 from .models import Post, Like, Comment, GeneratedImage
-from .serializers import LikeSerializer, CommentSerializer
+from .serializers import LikeSerializer, CommentSerializer, PostCreateSerializer
 from .dalle import generate_image
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -34,14 +34,16 @@ class PostView(APIView):
     def post(self, request):
         user = request.user
         latest_generated_image = GeneratedImage.objects.filter(author=user).last()
+        print("request.user:", request.user)
+        print("latest_generated_image.url:", latest_generated_image)
         
         # 이 부분에서 필요한 작업을 수행하고, 예를 들어 포스트 작성 등을 진행할 수 있습니다.
         # 예시로, latest_generated_image를 사용하여 포스트를 작성하는 코드를 추가했습니다.
         post_data = {
             "author": user.id,
-            "generated_image": latest_generated_image.id,
-            "title": request.data.title,
-            "content": request.data.content
+            "generated_image": latest_generated_image,
+            "title": request.data["title"],
+            "content": request.data["content"]
         }
 
         post_serializer = PostCreateSerializer(data=post_data)
