@@ -64,105 +64,105 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.update(request, *args, **kwargs)
     
 # kakao 소셜로그인
-class KakaoLoginView(APIView):
-    def post(self, request):
-        print("request.data:", request.data)
-        code = request.data.get('code')
-        get_code = code.split('?code='[-1])
-        print('code:', code)
-        redirect_url = config('REDIRECT_URI')
+# class KakaoLoginView(APIView):
+#     def post(self, request):
+#         print("request.data:", request.data)
+#         code = request.data.get('code')
+#         get_code = code.split('?code='[-1])
+#         print('code:', code)
+#         redirect_url = config('REDIRECT_URI')
         
-        #if code is None:
-            #return Response(status=status.HTTP_400_BAD_REQUEST)
+#         #if code is None:
+#             #return Response(status=status.HTTP_400_BAD_REQUEST)
   
-        access_token = requests.post(
-            "https://kauth.kakao.com/oauth/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={
-                'grant_type': 'authorization_code',
-                'client_id': config('KAKAO_API_KEY'),
-                'redirect_url': config('REDIRECT_URI'),
-                'client_secret': config('KAKAO_SECRET_KEY'),
-                'code': get_code,
-            },
-        )
-        print("access_token.json:", access_token.json)
-        access_token = access_token.json().get('access_token')
-        user_data_request = requests.get(
-            'https://kapi.kakao.com/v2/user/me',
-            headers={
-                'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-            },
-        )
-        user_data = user_data.json()
-        print("user_data:", user_data)
-        kakao_account = user_data.get('kakao_account')
-        user_email = kakao_account.get('kakao_account').get('email')
-        user_nickname = kakao_account.get('nickname'),
-        user_image = kakao_account.get('profile')['profile_image_url']
+#         access_token = requests.post(
+#             "https://kauth.kakao.com/oauth/token",
+#             headers={"Content-Type": "application/x-www-form-urlencoded"},
+#             data={
+#                 'grant_type': 'authorization_code',
+#                 'client_id': config('KAKAO_API_KEY'),
+#                 'redirect_url': config('REDIRECT_URI'),
+#                 'client_secret': config('KAKAO_SECRET_KEY'),
+#                 'code': get_code,
+#             },
+#         )
+#         print("access_token.json:", access_token.json)
+#         access_token = access_token.json().get('access_token')
+#         user_data_request = requests.get(
+#             'https://kapi.kakao.com/v2/user/me',
+#             headers={
+#                 'Authorization': f'Bearer {access_token}',
+#                 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+#             },
+#         )
+#         user_data = user_data.json()
+#         print("user_data:", user_data)
+#         kakao_account = user_data.get('kakao_account')
+#         user_email = kakao_account.get('kakao_account').get('email')
+#         user_nickname = kakao_account.get('nickname'),
+#         user_image = kakao_account.get('profile')['profile_image_url']
         
-        ran_str = ''
-        ran_num = random.randint(0, 99999)
-        for i in range(10):
-            ran_str += str(random.choice(string.ascii_letters + str(ran_num)))
+#         ran_str = ''
+#         ran_num = random.randint(0, 99999)
+#         for i in range(10):
+#             ran_str += str(random.choice(string.ascii_letters + str(ran_num)))
             
-        username = 'kakao_' + ran_str
-        try:
-            user = User.objects.get(email=email)
-            type = user.login_type
-            if type == 'normal' and user.user_status == 'active':
-                return Response(
-                    '일반회원으로 이미 가입하셨음. 아이디, 비번을 까먹었다면 아이디 찾기, 비밀번호 재설정을 이용하세요.',
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            elif type != 'kakao':
-                return Response(
-                    f'{type}으로 가입하셨음. 다시 로그인해주세요.', status=status.HTTP_400_BAD_REQUEST
-                )
-            elif user.is_active == False:
-                return Response(
-                    f'{user}님은 탈퇴한 회원.', status=status.HTTP_400_REQUEST
-                )
-            else:
-                refresh = RefreshToken.for_user(user)
-                refresh["email"] = user.email
-                refresh["nickname"] = user.nickname
-                refresh["login_type"] = user.login_type
-                refresh["is_admin"] = user.is_admin
-                user.last_login = timezone.now()
-                user.save()
-                refresh["last_login"] = str(user.last_login)
-                return Response(
-                    {
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                    },
-                    status=status.HTTP_200_OK,
-                )
-        except:
-            user = User.objects.create_user(
-                email=email,
-                username=username,
-                nickname=nickname,
-                profileimage=None,
-                profileimageurl=image,
-                login_type="kakao",
-            )
-            user.last_login = timezone.now()
-            user.set_unusable_password()
-            user.save()
-            refresh = RefreshToken.for_user(user)
-            refresh["email"] = user.email
-            refresh["nickname"] = user.nickname
-            refresh["login_type"] = user.login_type
-            refresh["is_admin"] = user.is_admin
-            refresh["last_login"] = str(user.last_login)
-            return Response(
-                {
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                },
-                status=status.HTTP_200_OK,
-            )
+#         username = 'kakao_' + ran_str
+#         try:
+#             user = User.objects.get(email=email)
+#             type = user.login_type
+#             if type == 'normal' and user.user_status == 'active':
+#                 return Response(
+#                     '일반회원으로 이미 가입하셨음. 아이디, 비번을 까먹었다면 아이디 찾기, 비밀번호 재설정을 이용하세요.',
+#                     status=status.HTTP_400_BAD_REQUEST,
+#                 )
+#             elif type != 'kakao':
+#                 return Response(
+#                     f'{type}으로 가입하셨음. 다시 로그인해주세요.', status=status.HTTP_400_BAD_REQUEST
+#                 )
+#             elif user.is_active == False:
+#                 return Response(
+#                     f'{user}님은 탈퇴한 회원.', status=status.HTTP_400_REQUEST
+#                 )
+#             else:
+#                 refresh = RefreshToken.for_user(user)
+#                 refresh["email"] = user.email
+#                 refresh["nickname"] = user.nickname
+#                 refresh["login_type"] = user.login_type
+#                 refresh["is_admin"] = user.is_admin
+#                 user.last_login = timezone.now()
+#                 user.save()
+#                 refresh["last_login"] = str(user.last_login)
+#                 return Response(
+#                     {
+#                         "refresh": str(refresh),
+#                         "access": str(refresh.access_token),
+#                     },
+#                     status=status.HTTP_200_OK,
+#                 )
+#         except:
+#             user = User.objects.create_user(
+#                 email=email,
+#                 username=username,
+#                 nickname=nickname,
+#                 profileimage=None,
+#                 profileimageurl=image,
+#                 login_type="kakao",
+#             )
+#             user.last_login = timezone.now()
+#             user.set_unusable_password()
+#             user.save()
+#             refresh = RefreshToken.for_user(user)
+#             refresh["email"] = user.email
+#             refresh["nickname"] = user.nickname
+#             refresh["login_type"] = user.login_type
+#             refresh["is_admin"] = user.is_admin
+#             refresh["last_login"] = str(user.last_login)
+#             return Response(
+#                 {
+#                     "refresh": str(refresh),
+#                     "access": str(refresh.access_token),
+#                 },
+#                 status=status.HTTP_200_OK,
+#             )
             

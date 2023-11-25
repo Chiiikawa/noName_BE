@@ -5,6 +5,7 @@ from no_name.settings import AUTH_USER_MODEL
 class GeneratedImage(models.Model):
     prompt = models.TextField() # 사용자가 입력한 프롬프트
     image_url = models.URLField(max_length=300) # 생성된 이미지 URL 을 generated_images로 저장
+    author = models.ForeignKey(AUTH_USER_MODEL, related_name='generated_images', null=True, on_delete=models.CASCADE)
   
 
     def __str__(self):

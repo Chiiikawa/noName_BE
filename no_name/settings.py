@@ -16,8 +16,8 @@ import os, json
 from decouple import config
 
 OPENAI_API_KEY = config('OPENAI_API_KEY')
-SOCIAL_AUTH_KAKAO_KEY = config('KAKAO_API_KEY')
-SOCIAL_AUTH_KAKAO_SECRET = config('KAKAO_SECRET_KEY')
+# SOCIAL_AUTH_KAKAO_KEY = config('KAKAO_API_KEY')
+# SOCIAL_AUTH_KAKAO_SECRET = config('KAKAO_SECRET_KEY')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
