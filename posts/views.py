@@ -6,8 +6,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import APIView, permission_classes
+import tempfile
 import requests
 from django.core.files.base import ContentFile
+import random
+import urllib.request
+from urllib.request import urlopen
 
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
@@ -44,20 +48,29 @@ class PostView(APIView):
         print("request.user", request.user.id)
         user = request.user
         latest_generated_image = GeneratedImage.objects.filter(author=user).last()
+        print("latest_generated_image:", latest_generated_image.id)
+        image_url = latest_generated_image.image_url
+        print("image_url:", image_url)
+        # img_response = requests.get(image_url, stream=True)
+        # print("requests로 DALL-E에서 가져온 response:", response)
+        tmp_img = tempfile.NamedTemporaryFile() # 임시파일 생성
+        tmp_img.write(urlopen(image_url).read())
+        print("tmp_img까진 됩니다.")
 
-        # 이 부분에서 필요한 작업을 수행하고, 예를 들어 포스트 작성 등을 진행할 수 있습니다.
-        # 예시로, latest_generated_image를 사용하여 포스트를 작성하는 코드를 추가했습니다.
         print("author:", user.id)
-        print("generated_image:", latest_generated_image)
+        print("generated_image:", tmp_img)
         print("title:", request.data["title"])
         print("content:", request.data["content"])
+        
+        # author, image, title, content를 post_data라는 변수에 넣음
         post_data = {
             "author": user.id,
-            "generated_image": latest_generated_image.id,
+            "generated_image": tmp_img,
             "title": request.data["title"],
             "content": request.data["content"]
         }
 
+        # PostCreateSerializer에 post_data를 넣어 validation 후 저장
         post_serializer = PostCreateSerializer(data=post_data)
         if post_serializer.is_valid():
             # save 전, user가 동일한 이미지로 생성한 게 있는지 확인하고 있다면 status 400 띄우기
