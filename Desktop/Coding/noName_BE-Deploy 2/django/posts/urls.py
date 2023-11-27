@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .views import LikeViewSet, CommentViewSet, DalleAPIView, PostView
+from .views import LikeViewSet, CommentViewSet, DalleAPIView, PostCreateView, PostListView
 from django.contrib import admin
 
 
@@ -10,7 +10,16 @@ router.register(r'likes', LikeViewSet)
 router.register(r'comments', CommentViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # 게시물 전체조회, 프롬프트 작성
+    path('', PostListView.as_view(), name='main-page'),
+    # dalle apikey 요청
     path('dalle/', DalleAPIView.as_view(), name='dalle-api'),
-    path('create/', PostView.as_view()),
+    # 게시물 작성
+    path('create/', PostCreateView.as_view(), name='post-create'),
+    # 특정 게시물 상세보기/삭제
+    path('<int:post_id>/',PostListView.as_view(), name='post-detail'),
+    # 특정 게시물 삭제
+    path('<int:post_id>/delete/',PostDeleteView.as_view(), name='post-delete'),
+    # 좋아요, 댓글 조회/등록
+    path('<int:post_id>/interactions/',include(router.urls), name='like-comment'),
 ]

@@ -38,15 +38,13 @@ class PostListSerializer(serializers.ModelSerializer):
             "author",
             "generated_image",
             "created_at",
-            "likes_count",
-            "comments_count",
         )
 
 
 class PostDetailSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
-    likes_count = serializers.IntegerField()
-    comments_count = serializers.IntegerField()
+    likes = LikeSerializer(many=True, read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
 
     def get_author(self, obj):
         return {
@@ -61,6 +59,6 @@ class PostDetailSerializer(serializers.ModelSerializer):
             "author",
             "title",
             "content",
-            "likes_count",
-            "comments_count",
+            "likes",
+            "comments",
         )

@@ -31,11 +31,10 @@ class DalleAPIView(APIView):
         image_url = generate_image(prompt)  # generate_image 함수를 호출하여 입력된 prompt를 바탕으로 이미지를 생성하고, 생성된 이미지 URL을 image_url 변수에 저장.
         return Response({"image": str(image_url)})
 
-class PostView(APIView):
+class PostCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        print("request.user", request.user.id)
         user = request.user
         image_url = request.data["image_url"]
         print("image_url:", image_url)
@@ -59,11 +58,22 @@ class PostView(APIView):
         else:
             return Response({"error": post_serializer.errors}, status=400)
 
-        
+class PostDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        user = request.user
+        if post.author != user:
+            return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+        post.delete()
+        return Response({"detail": "삭제되었습니다"}, status=status.HTTP_200_OK)
+
+class PostListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     def get(self, request, post_id=None):
-        if post_id:
+        if post_id: #post_id가 존재하면 특정 게시물의 상세 정보를 요청함.
             # 상세보기
-            user = request.user
+            user = request.user #현재 요청을 보낸 사용자를 가져옴.
             post = get_object_or_404(
                 Post.objects.annotate(
                     likes_count=Count("likes", distinct=True),
@@ -71,20 +81,33 @@ class PostView(APIView):
                 ),
                 pk=post_id,
             )
-            serializer = PostDetailSerializer(post)
-            data = serializer.data
-            if user.is_authenticated and post in user.likes.all():
-                data["is_liked"] = True
-            else:
+
+            # LikeViewSet을 사용하여 좋아요 정보 가져오기
+            like_queryset = Like.objects.filter(post=post)
+            like_serializer = LikeSerializer(like_queryset, many=True) #가져온 정보를 직렬화
+
+            # CommentViewSet을 사용하여 댓글 정보 가져오기
+            comment_queryset = Comment.objects.filter(post=post)
+            comment_serializer = CommentSerializer(comment_queryset, many=True)
+
+            serializer = PostDetailSerializer(post) #현재 게시물에 대한 상세 정보를 직렬화
+            data = serializer.data #직렬화된 데이터를 data 변수에 저장
+            data["likes"] = like_serializer.data #딕셔너리에 각각 좋아요와 댓글 정보를 추가
+            data["comments"] = comment_serializer.data
+
+            if user.is_authenticated and post in user.likes.all(): #현재 사용자가 로그인되어 있고, 이 사용자가 현재 조회 중인 게시물을 좋아요한 경우
+                data["is_liked"] = True #data 딕셔너리에 "is_liked" 키를 추가하고 값을 True로 설정
+            else: #만약 사용자가 로그인되어 있지 않거나 현재 조회 중인 게시물을 좋아요하지 않은 경우, data 딕셔너리에 "is_liked" 키를 추가하고 값을 False로 설정
                 data["is_liked"] = False
-            return Response(data, status=status.HTTP_200_OK)
+
+            return Response(data, status=status.HTTP_200_OK) #직렬화된 데이터와 함께 HTTP 200 OK 상태 코드를 갖는 응답을 반환
         else:
             # 전체보기
             posts = (
-                Post.objects.select_related("author")
-                .only("author__nickname", "created_at")
-                .order_by("-created_at")
+                Post.objects.select_related("author") #모든 게시물을 가져오는데, select_related를 사용하여 게시물의 작성자 정보를 미리 가져옴
+                .only("author__nickname", "created_at") #only를 사용하여 필요한 필드만 선택
+                .order_by("-created_at") #order_by로 게시물을 최신순으로 정렬
             )
 
-            serializer = PostListSerializer(posts, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            serializer = PostListSerializer(posts, many=True) #가져온 게시물들을 PostListSerializer를 사용하여 직렬화
+            return Response(serializer.data, status=status.HTTP_200_OK) #직렬화된 데이터와 함께 HTTP 200 OK 상태 코드를 갖는 응답을 반환합니다. 이는 전체 게시물 목록을 나타냄
