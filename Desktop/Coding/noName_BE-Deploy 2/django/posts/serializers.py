@@ -1,15 +1,26 @@
 from rest_framework import serializers
 from .models import Like, Comment, Post
 
-class LikeSerializer(serializers.ModelSerializer):
-     class Meta:
-         model = Like
-         fields = ['id', 'user', 'post']
-        
-class CommentSerializer(serializers.ModelSerializer):
+#BaseInteractionSerializer을 만들어서 아래 LikeSerializer,CommentSerializer에서 중복값을 줄임
+class BaseInteractionSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
     class Meta:
+        abstract = True
+
+class LikeSerializer(BaseInteractionSerializer):
+    class Meta(BaseInteractionSerializer.Meta):
+        model = Like
+        fields = ['id', 'user', 'post']
+        
+class CommentSerializer(BaseInteractionSerializer):
+    class Meta(BaseInteractionSerializer.Meta):
         model = Comment
         fields = ['id', 'post', 'user', 'content', 'created_at']
+
+#CommentCreateSerializer는 CommentSerializer을 종속받아 중복값을 줄임
+class CommentCreateSerializer(CommentSerializer):
+    class Meta(CommentSerializer.Meta):
+        fields = ("post", "content")
 
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:

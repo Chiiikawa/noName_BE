@@ -5,7 +5,7 @@ from .dalle import generate_image
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import APIView, permission_classes
+from rest_framework.decorators import APIView, permission_classes, action
 import requests
 from django.core.files.base import ContentFile
 import random
@@ -16,10 +16,47 @@ from django.core.files.base import ContentFile
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
-    
+
+    def create(self, request):
+        # `pk`는 특정 Like 객체의 primary key를 나타냅니다.
+        #post = self.get_object()
+        # request.user는 현재 로그인한 사용자를 나타냅니다.
+        user = request.user
+        post_id = request.data.get("post_id")
+        post = get_object_or_404(Post, pk=post_id)
+        author = post.author
+
+        if user in post.likes.all(): #역참조
+            return Response(
+                {"detail": "이미 좋아요를 눌렀습니다."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            # 좋아요 추가
+            Like.objects.create(user=user, post=post)
+
+            return Response(
+                {"likes_count": post.likes.count()}, status=status.HTTP_200_OK
+            )
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+    def create(self, request, *args, **kwargs):
+        post_id = kwargs.get('post_id')
+        post = get_object_or_404(Post, pk=post_id)
+        user = request.user
+
+        if user == post.author:
+            return Response({"detail": "권한이 없습니다"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = CommentCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=user, post=post)
+            return Response(
+                {"data": serializer.data, "is_answer": False}, status=status.HTTP_200_OK
+            )
+        return Response({"detail": "유효하지 않은 댓글"}, status=status.HTTP_400_BAD_REQUEST)
     
 class DalleAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -104,8 +141,7 @@ class PostListView(APIView):
         else:
             # 전체보기
             posts = (
-                Post.objects.select_related("author") #모든 게시물을 가져오는데, select_related를 사용하여 게시물의 작성자 정보를 미리 가져옴
-                .only("author__nickname", "created_at") #only를 사용하여 필요한 필드만 선택
+                Post.objects.all() #모든 게시물을 가져오는데, select_related를 사용하여 게시물의 작성자 정보를 미리 가져옴
                 .order_by("-created_at") #order_by로 게시물을 최신순으로 정렬
             )
 
