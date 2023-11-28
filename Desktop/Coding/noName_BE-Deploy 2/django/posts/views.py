@@ -13,34 +13,38 @@ import urllib.request
 from urllib.request import urlopen
 from django.core.files.base import ContentFile
 
-class LikeViewSet(viewsets.ModelViewSet):
+class LikeView(APIView):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
 
-    def create(self, request):
+    def post(self, request):
         # request.user는 현재 로그인한 사용자를 나타냅니다.
         user = request.user
         post_id = request.data.get("post_id")
         post = get_object_or_404(Post, pk=post_id)
         author = post.author
 
-        if user in post.likes.all(): #역참조
+        existing_like = Like.objects.filter(user=user, post=post).first()
+        if existing_like:
+            existing_like.delete()
+
             return Response(
-                {"detail": "이미 좋아요를 눌렀습니다."}, status=status.HTTP_400_BAD_REQUEST
+                {"likes_count": post.likes.count(), "is_liked": False},
+                status=status.HTTP_200_OK
             )
         else:
             # 좋아요 추가
             Like.objects.create(user=user, post=post)
 
             return Response(
-                {"likes_count": post.likes.count()}, status=status.HTTP_200_OK
+                {"likes_count": post.likes.count(), "is_liked": True}, status=status.HTTP_200_OK
             )
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentView(APIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
-    def create(self, request):
+    def post(self, request):
         post_id = request.data.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
         user = request.user
