@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status, permissions, generics
 from .models import Post, Like, Comment
-from .serializers import LikeSerializer, CommentSerializer, PostCreateSerializer, PostListSerializer, PostDetailSerializer
+from .serializers import LikeSerializer, CommentSerializer, CommentCreateSerializer, PostCreateSerializer, PostListSerializer, PostDetailSerializer
 from .dalle import generate_image
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,8 +18,6 @@ class LikeViewSet(viewsets.ModelViewSet):
     serializer_class = LikeSerializer
 
     def create(self, request):
-        # `pk`는 특정 Like 객체의 primary key를 나타냅니다.
-        #post = self.get_object()
         # request.user는 현재 로그인한 사용자를 나타냅니다.
         user = request.user
         post_id = request.data.get("post_id")
@@ -42,21 +40,20 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
-    def create(self, request, *args, **kwargs):
-        post_id = kwargs.get('post_id')
+    def create(self, request):
+        post_id = request.data.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
         user = request.user
 
-        if user == post.author:
-            return Response({"detail": "권한이 없습니다"}, status=status.HTTP_403_FORBIDDEN)
-
         serializer = CommentCreateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(author=user, post=post)
+            serializer.save(user=user, post=post)
             return Response(
-                {"data": serializer.data, "is_answer": False}, status=status.HTTP_200_OK
+                {"data": serializer.data,}, status=status.HTTP_200_OK
             )
-        return Response({"detail": "유효하지 않은 댓글"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            #에러 메시지 출력
+            return Response({"detail": "유효하지 않은 댓글","errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
 class DalleAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
