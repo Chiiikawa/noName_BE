@@ -12,6 +12,7 @@ import random
 import urllib.request
 from urllib.request import urlopen
 from django.core.files.base import ContentFile
+from datetime import datetime
 
 class LikeView(APIView):
     queryset = Like.objects.all()
@@ -84,7 +85,8 @@ class PostCreateView(APIView):
             "title": request.data["title"],
             "content": request.data["content"]
         }
-        image_content = ContentFile(img_response.content, name="generated_image.png")
+        current_time = int(datetime.now().timestamp())
+        image_content = ContentFile(img_response.content, name=f"{current_time}.png")
         post_data["generated_image"] = image_content
 
         # PostCreateSerializer에 post_data를 넣어 validation 후 저장
