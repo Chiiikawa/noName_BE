@@ -70,45 +70,7 @@ class DalleAPIView(APIView):
         image_url = generate_image(prompt)  # generate_image 함수를 호출하여 입력된 prompt를 바탕으로 이미지를 생성하고, 생성된 이미지 URL을 image_url 변수에 저장.
         return Response({"image": str(image_url)})
 
-class PostCreateView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        user = request.user
-        image_url = request.data["image_url"]
-        print("image_url:", image_url)
-        img_response = requests.get(image_url, stream=True)
-        
-        # author, image, title, content를 post_data라는 변수에 넣음
-        post_data = {
-            "author": user.id,
-            "title": request.data["title"],
-            "content": request.data["content"]
-        }
-        current_time = int(datetime.now().timestamp())
-        image_content = ContentFile(img_response.content, name=f"{current_time}.png")
-        post_data["generated_image"] = image_content
-
-        # PostCreateSerializer에 post_data를 넣어 validation 후 저장
-        post_serializer = PostCreateSerializer(data=post_data)
-        if post_serializer.is_valid():
-            # save 전, user가 동일한 이미지로 생성한 게 있는지 확인하고 있다면 status 400 띄우기
-            post_serializer.save()
-            return Response({"message": "Post가 성공적으로 생성됐습니다."})
-        else:
-            return Response({"error": post_serializer.errors}, status=400)
-
-class PostDeleteView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    def delete(self, request, post_id):
-        post = get_object_or_404(Post, pk=post_id)
-        user = request.user
-        if post.author != user:
-            return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
-        post.delete()
-        return Response({"detail": "삭제되었습니다"}, status=status.HTTP_200_OK)
-
-class PostListView(APIView):
+class PostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def get(self, request, post_id=None):
         if post_id: #post_id가 존재하면 특정 게시물의 상세 정보를 요청함.
@@ -150,3 +112,36 @@ class PostListView(APIView):
 
             serializer = PostListSerializer(posts, many=True) #가져온 게시물들을 PostListSerializer를 사용하여 직렬화
             return Response(serializer.data, status=status.HTTP_200_OK) #직렬화된 데이터와 함께 HTTP 200 OK 상태 코드를 갖는 응답을 반환합니다. 이는 전체 게시물 목록을 나타냄
+
+    def post(self, request):
+        user = request.user
+        image_url = request.data["image_url"]
+        print("image_url:", image_url)
+        img_response = requests.get(image_url, stream=True)
+        
+        # author, image, title, content를 post_data라는 변수에 넣음
+        post_data = {
+            "author": user.id,
+            "title": request.data["title"],
+            "content": request.data["content"]
+        }
+        current_time = int(datetime.now().timestamp())
+        image_content = ContentFile(img_response.content, name=f"{current_time}.png")
+        post_data["generated_image"] = image_content
+
+        # PostCreateSerializer에 post_data를 넣어 validation 후 저장
+        post_serializer = PostCreateSerializer(data=post_data)
+        if post_serializer.is_valid():
+            # save 전, user가 동일한 이미지로 생성한 게 있는지 확인하고 있다면 status 400 띄우기
+            post_serializer.save()
+            return Response({"message": "Post가 성공적으로 생성됐습니다."})
+        else:
+            return Response({"error": post_serializer.errors}, status=400)
+
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        user = request.user
+        if post.author != user:
+            return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+        post.delete()
+        return Response({"detail": "삭제되었습니다"}, status=status.HTTP_200_OK)

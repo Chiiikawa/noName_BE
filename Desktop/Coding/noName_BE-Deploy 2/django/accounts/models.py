@@ -81,7 +81,7 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
         "로그인 타입", max_length=10, choices=LOGIN_TYPE, default="normal", null=True
     )
 
-
+    point = models.PositiveIntegerField(default=100)
     
     is_active = models.BooleanField(default=True)   # 사용자의 활성화 상태를 나타내는 필드
     is_admin = models.BooleanField(default=False)   # 사용자가 관리자인지 여부를 나타내는 필드
@@ -99,4 +99,15 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
     @property
     def is_staff(self):
         return self.is_admin
+
+class History(models.Model):
+    ACTION_CHOICE = (
+        ("likes", "likes"),
+        ("comment", "comment"),
+        ("create", "create"),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="history")
+    action = models.CharField(max_length=10, choices=ACTION_CHOICE, default="likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+    point = models.PositiveIntegerField()
 
