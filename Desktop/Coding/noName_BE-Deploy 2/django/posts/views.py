@@ -7,12 +7,15 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import APIView, permission_classes, action
 import requests
-from django.core.files.base import ContentFile
 import random
 import urllib.request
 from urllib.request import urlopen
 from django.core.files.base import ContentFile
 from datetime import datetime
+from django.db.models import Count
+from . import constant
+from django.db.models import F
+from accounts.models import History
 
 class LikeView(APIView):
     queryset = Like.objects.all()
@@ -64,6 +67,13 @@ class DalleAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def post(self, request, *args, **kwargs):
         prompt = request.data.get('prompt') # 클라이언트 요청에서 prompt라는 데이터를 가져옴, prompt는 사용자가 입력한 텍스트 prompt, 이미지 생성에 사용함.
+        user = request.user
+        if user.point < constant.API_REQUEST_POINT:
+            return Response({"detail": "포인트가 부족합니다."}, status=status.HTTP_403_FORBIDDEN)
+        user.point = F("point") - constant.API_REQUEST_POINT
+        user.save()
+        user.refresh_from_db()
+        History.objects.create(user=user, action="create", point=user.point)
         if not prompt:  # prompt가 비어있거나 없는 경우를 확인함.
             return Response({"error": "No prompt provided"}, status=400)
 

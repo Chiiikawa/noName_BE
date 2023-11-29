@@ -52,11 +52,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "nickname",
             "address",
             "zipcode",
+            "point",
             "is_active",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "username", "email", "created_at") # 읽기 전용 필드. 이 필드들은 수정 불가능.
+        read_only_fields = ("id", "username", "email", "point", "created_at") # 읽기 전용 필드. 이 필드들은 수정 불가능.
     
     def update(self, instance, validated_data):
         # Only update the fields that can be modified by the user
