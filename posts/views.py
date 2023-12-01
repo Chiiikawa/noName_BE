@@ -26,7 +26,6 @@ class LikeView(APIView):
         user = request.user
         post_id = request.data.get("post_id")
         post = get_object_or_404(Post, pk=post_id)
-        author = post.author
 
         existing_like = Like.objects.filter(user=user, post=post).first()
         if existing_like:
