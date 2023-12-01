@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status, permissions, generics
-from .models import Post, Like, Comment
-from .serializers import LikeSerializer, CommentSerializer, CommentCreateSerializer, PostCreateSerializer, PostListSerializer, PostDetailSerializer
+from .models import Post, Like, Comment, Bookmark
+from .serializers import LikeSerializer, CommentSerializer, CommentCreateSerializer, PostCreateSerializer, PostListSerializer, PostDetailSerializer, BookmarkSerializer
 from .dalle import generate_image
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,14 +17,39 @@ from . import constant
 from django.db.models import F
 from accounts.models import History
 
+class BookmarkView(APIView):
+    queryset = Bookmark.objects.all()
+    serializer_class = BookmarkSerializer
+
+    def post(self, request, post_id):
+        # request.user is the currently logged-in user.
+        user = request.user
+        post = get_object_or_404(Post, pk=post_id)
+
+        existing_bookmark = Bookmark.objects.filter(user=user, post=post).first()
+        if existing_bookmark:
+            existing_bookmark.delete()
+
+            return Response(
+                {"is_bookmarked": False},
+                status=status.HTTP_200_OK
+            )
+        else:
+            # Bookmark 추가
+            Bookmark.objects.create(user=user, post=post)
+
+            return Response(
+                {"is_bookmarked": True}, status=status.HTTP_200_OK
+            )
+
+
 class LikeView(APIView):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
 
-    def post(self, request):
+    def post(self, request, post_id):
         # request.user는 현재 로그인한 사용자를 나타냅니다.
         user = request.user
-        post_id = request.data.get("post_id")
         post = get_object_or_404(Post, pk=post_id)
 
         existing_like = Like.objects.filter(user=user, post=post).first()
@@ -47,8 +72,7 @@ class CommentView(APIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
-    def post(self, request):
-        post_id = request.data.get('post_id')
+    def post(self, request, post_id):
         post = get_object_or_404(Post, pk=post_id)
         user = request.user
 
@@ -92,6 +116,10 @@ class PostView(APIView):
                 ),
                 pk=post_id,
             )
+            
+            # Bookmark 정보 가져오기
+            bookmark_queryset = Bookmark.objects.filter(post=post)
+            bookmark_serializer = BookmarkSerializer(bookmark_queryset, many=True) #가져온 정보를 직렬화
 
             # LikeViewSet을 사용하여 좋아요 정보 가져오기
             like_queryset = Like.objects.filter(post=post)
@@ -105,11 +133,17 @@ class PostView(APIView):
             data = serializer.data #직렬화된 데이터를 data 변수에 저장
             data["likes"] = like_serializer.data #딕셔너리에 각각 좋아요와 댓글 정보를 추가
             data["comments"] = comment_serializer.data
-
-            if user.is_authenticated and post in user.likes.all(): #현재 사용자가 로그인되어 있고, 이 사용자가 현재 조회 중인 게시물을 좋아요한 경우
-                data["is_liked"] = True #data 딕셔너리에 "is_liked" 키를 추가하고 값을 True로 설정
-            else: #만약 사용자가 로그인되어 있지 않거나 현재 조회 중인 게시물을 좋아요하지 않은 경우, data 딕셔너리에 "is_liked" 키를 추가하고 값을 False로 설정
+            data["bookmark"] = bookmark_serializer.data
+            
+            if user.is_authenticated and post.likes.filter(user=user).exists():
+                data["is_liked"] = True
+            else:
                 data["is_liked"] = False
+
+            if user.is_authenticated and post.bookmark.filter(user=user).exists():
+                data["is_bookmarked"] = True
+            else:
+                data["is_bookmarked"] = False
 
             return Response(data, status=status.HTTP_200_OK) #직렬화된 데이터와 함께 HTTP 200 OK 상태 코드를 갖는 응답을 반환
         else:

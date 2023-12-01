@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import Like, Comment, Post
+from .models import Like, Comment, Post, Bookmark
+
+class BookmarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bookmark
+        fields = ('id', 'user', 'post')
 
 #BaseInteractionSerializer을 만들어서 아래 LikeSerializer,CommentSerializer에서 중복값을 줄임
 class BaseInteractionSerializer(serializers.ModelSerializer):
