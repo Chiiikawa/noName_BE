@@ -76,6 +76,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',   # 클릭재킹 공격으로부터 보호하기 위해 사용됨.
     'whitenoise.middleware.WhiteNoiseMiddleware',   # django 프로젝트의 정적 파일을 서비스하는데 최적화된 방법을 제공함.
     "allauth.account.middleware.AccountMiddleware",
+    "posts.dalle.DALLERateLimitMiddleware", #dalle api 생성 전체 lock
 ]
 
 # 인증 기능을 위한 AUTHENTICATION 설정
