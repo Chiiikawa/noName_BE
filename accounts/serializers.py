@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from accounts.models import User
 from django.contrib.auth import get_user_model
+from posts.models import Post, Bookmark
+from posts.serializers import PostCreateSerializer, BookmarkSerializer
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -41,6 +43,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
     
 class UserProfileSerializer(serializers.ModelSerializer):
+    profile_image = serializers.ImageField(read_only=True)
+    posts = serializers.SerializerMethodField()
+    bookmarks = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -56,8 +62,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "is_active",
             "created_at",
             "updated_at",
+            "posts",
+            "bookmarks",
         )
         read_only_fields = ("id", "username", "email", "point", "created_at") # 읽기 전용 필드. 이 필드들은 수정 불가능.
+        
+    def get_posts(self, obj):
+        posts = Post.objects.filter(author=obj)
+        post_serializer = PostCreateSerializer(posts, many=True)  # PostSerializer는 실제 프로젝트의 Post 모델에 맞게 사용
+        return post_serializer.data
+
+    def get_bookmarks(self, obj):
+        bookmarks = Bookmark.objects.filter(user=obj)
+        bookmark_serializer = BookmarkSerializer(bookmarks, many=True)  # BookmarkSerializer는 실제 프로젝트의 Bookmark 모델에 맞게 사용
+        return bookmark_serializer.data
     
     def update(self, instance, validated_data):
         # Only update the fields that can be modified by the user
