@@ -10,7 +10,7 @@ def generate_image(prompt):
     response = client.images.generate(
     prompt=prompt,
     n=1,
-    size="1024x1024")
+    size="256x256")
 
     print(response.data[0].url)
     return response.data[0].url

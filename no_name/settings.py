@@ -167,6 +167,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # django가 collectstatic �
  # static_url 은 정적 파일에 접근할 때 사용되는 URL을 설정함. ex) STATIC_URL 이 static/로 설정되어 있으면, 정적 파일들은 http://noname.com/static/와 같은 URL을 통해 접근됨.
 STATIC_URL = 'static/'
 
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

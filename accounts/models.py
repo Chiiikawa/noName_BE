@@ -41,7 +41,8 @@ class User(AbstractBaseUser, PermissionsMixin): # import한 AbstractBaseUser에 
         max_length=50,
         unique=True,
     )   # 사용자의 이메일을 저장하는 필드. 최대 길이는 50자이며, 이메일은 고유해야 한다.
-    profile_image = models.URLField(
+    profile_image = models.ImageField(
+        upload_to="profile-image",
         blank=True,
         null=True,
     )   # 사용자의 프로필 이미지를 저장하는 필드. 이미지는 'media/userProfile' 디렉토리에 저장되며, 기본값으로 'media/userPProfile/default.png'가 설정된다. 이필드는 선택 사항입니다.
