@@ -1,41 +1,40 @@
+# Django, rest_framework에서 import
+from django.contrib.auth import get_user_model, authenticate
+from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions, generics
-from django.contrib.auth import get_user_model, authenticate
 from rest_framework.generics import get_object_or_404
 from rest_framework.decorators import APIView, permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+# python에서 import
+from decouple import config
+import requests
+
+# Project, app 내부에서 import
 from accounts.serializers import (
     UserCreateSerializer,
     CustomTokenObtainPairSerializer,
     UserProfileSerializer,
 )
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-)
-from .models import User
-from decouple import config
-import requests
 
 
 # 회원가입
 class UserView(APIView):
-    # 회원가입
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "가입완료!"}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"message":f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message":f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
 
-
+# 로그인
 class LoginView(TokenObtainPairView):
     def post(self, request):
         serializer = CustomTokenObtainPairSerializer(data=request.data)
         if serializer.is_valid():
             return Response(serializer.validated_data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Retrieve(조회)를 뜻함. RetrieveUpdateAPIView 는 사용자 프로필의 상세정보를 조회하는 기능을 제공.
@@ -51,14 +50,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def retrieve(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             return super().retrieve(request, *args, **kwargs)
-        else:
-            return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
     def put(self, request, *args, **kwargs):
-        if self.request.user.is_authenticated and self.get_object() == self.request.user:   # 요청을 보낸 사용자가 인증되었고, 요청이 자신의 프로필을 대상으로 하는지 확인하는 것.
+        if self.request.user.is_authenticated and self.get_object() == self.request.user:   # 인증된 사용자가 자신의 프로필만 수정 가능
             return super().update(request, *args, **kwargs)
-        else:
-            return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
 
-    def partial_update(self, request, *args, **kwargs): # HTTP PATCH의 요청을 처리함. 리소스의 부분적인 업데이트를 위해 사용됨.
+    def partial_update(self, request, *args, **kwargs): # HTTP PATCH의 요청을 처리함. 리소스의 부분적인 업데이트를 위해 사용.
         return self.update(request, *args, **kwargs)

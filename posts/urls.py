@@ -1,22 +1,25 @@
-from django.contrib import admin
 from django.urls import path, include
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.contrib import admin
 from . import views
-from .views import UserView, LoginView, UserProfileView
-
-urlpatterns = ([
-    # kakao 로그인
-    # path("kakao-login/", views.KakaoLoginView.as_view(), name="kakao_login"),
-    # 로그인
-    path("token/", LoginView.as_view(), name="token_obtain_pair"),
-    # 갱신
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # 회원가입
-    path("", UserView.as_view(), name="account"),
-    # 프로필 조회/수정
-    path('profile/', UserProfileView.as_view(), name='user-profile'),
-]
+from .views import (
+    LikeView, 
+    CommentView, 
+    DalleAPIView, 
+    PostView, 
+    BookmarkView,
 )
+
+urlpatterns = [
+    # 게시물 전체조회, 프롬프트 작성, 게시물 작성
+    path('', PostView.as_view(), name='main-page'),
+    # dalle apikey 요청
+    path('dalle/', DalleAPIView.as_view(), name='dalle-api'),
+    # 특정 게시물 상세보기/삭제
+    path('<int:post_id>/',PostView.as_view(), name='post-detail'),
+    # 좋아요
+    path('<int:post_id>/likes/',LikeView.as_view(), name='likes'),
+    # 댓글 조회/등록
+    path('<int:post_id>/comments/',CommentView.as_view(), name='comments'),
+    # 북마크 등록
+    path('<int:post_id>/bookmark/', BookmarkView.as_view(), name='bookmark'),
+]

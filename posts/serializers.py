@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import Like, Comment, Post
+from .models import Like, Comment, Post, Bookmark
+
+class BookmarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bookmark
+        fields = ('id', 'user', 'post')
 
 #BaseInteractionSerializer을 만들어서 아래 LikeSerializer,CommentSerializer에서 중복값을 줄임
 class BaseInteractionSerializer(serializers.ModelSerializer):
@@ -13,9 +18,12 @@ class LikeSerializer(BaseInteractionSerializer):
         fields = ['id', 'user', 'post']
         
 class CommentSerializer(BaseInteractionSerializer):
+    user_nickname = serializers.CharField(source='user.nickname', read_only=True)
+    user_profile_image = serializers.ImageField(source='user.profile_image', read_only=True)
+
     class Meta(BaseInteractionSerializer.Meta):
         model = Comment
-        fields = ['id', 'post', 'user', 'content', 'created_at']
+        fields = ['id', 'post', 'user', 'user_nickname', 'user_profile_image','content', 'created_at']
 
 #CommentCreateSerializer는 CommentSerializer을 종속받아 중복값을 줄임
 class CommentCreateSerializer(CommentSerializer):
@@ -47,8 +55,6 @@ class PostListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "author",
-            "title",
-            "content",
             "generated_image",
             "created_at",
         )

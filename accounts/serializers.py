@@ -1,7 +1,12 @@
+# Django, rest_framework에서 import
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from accounts.models import User
-from django.contrib.auth import get_user_model
+
+# Project, app 내부에서 import
+from no_name.settings import AUTH_USER_MODEL
+from posts.models import Post, Bookmark
+from posts.serializers import PostCreateSerializer, BookmarkSerializer
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -20,7 +25,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         password = validated_data.pop("password")   # 유효한 데이터로부터 'password'를 추출하고, 데이터에서 제거한다.
-        user = User(**validated_data)
+        user = AUTH_USER_MODEL(**validated_data)
         user.set_password(password) # 사용자 객체에 비밀번호를 설정, 'set_password' 메서드는 비밀번호를 해시 처리 함.
         user.save()
         return user
@@ -41,8 +46,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
     
 class UserProfileSerializer(serializers.ModelSerializer):
+    profile_image = serializers.ImageField(read_only=True)
+    posts = serializers.SerializerMethodField()
+    bookmarks = serializers.SerializerMethodField()
+
     class Meta:
-        model = User
+        model = AUTH_USER_MODEL
         fields = (
             "id",
             "username",
@@ -52,11 +61,24 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "nickname",
             "address",
             "zipcode",
+            "point",
             "is_active",
             "created_at",
             "updated_at",
+            "posts",
+            "bookmarks",
         )
-        read_only_fields = ("id", "username", "email", "created_at") # 읽기 전용 필드. 이 필드들은 수정 불가능.
+        read_only_fields = ("id", "username", "email", "point", "created_at") # 읽기 전용 필드. 이 필드들은 수정 불가능.
+        
+    def get_posts(self, obj):
+        posts = Post.objects.filter(author=obj)
+        post_serializer = PostCreateSerializer(posts, many=True)  # PostSerializer는 실제 프로젝트의 Post 모델에 맞게 사용
+        return post_serializer.data
+
+    def get_bookmarks(self, obj):
+        bookmarks = Bookmark.objects.filter(user=obj)
+        bookmark_serializer = BookmarkSerializer(bookmarks, many=True)  # BookmarkSerializer는 실제 프로젝트의 Bookmark 모델에 맞게 사용
+        return bookmark_serializer.data
     
     def update(self, instance, validated_data):
         # Only update the fields that can be modified by the user
