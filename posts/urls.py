@@ -1,8 +1,14 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views
-from .views import LikeView, CommentView, DalleAPIView, PostView, BookmarkView
 from django.contrib import admin
+from . import views
+from .views import (
+    LikeView, 
+    CommentView, 
+    DalleAPIView, 
+    PostView, 
+    BookmarkView,
+)
+
 
 urlpatterns = [
     # 게시물 전체조회, 프롬프트 작성, 게시물 작성

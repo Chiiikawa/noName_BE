@@ -1,7 +1,10 @@
+# Django, rest_framework에서 import
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+# Project, app 내부에서 import
 from accounts.models import User
-from django.contrib.auth import get_user_model
 from posts.models import Post, Bookmark
 from posts.serializers import PostCreateSerializer, BookmarkSerializer
 
