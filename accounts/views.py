@@ -1,41 +1,44 @@
+# Django, rest_framework에서 import
+from django.contrib.auth import get_user_model, authenticate
+from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions, generics
-from django.contrib.auth import get_user_model, authenticate
 from rest_framework.generics import get_object_or_404
 from rest_framework.decorators import APIView, permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+# python에서 import
+from decouple import config
+import requests
+
+# Project, app 내부에서 import
+from .models import User
 from accounts.serializers import (
     UserCreateSerializer,
     CustomTokenObtainPairSerializer,
     UserProfileSerializer,
 )
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-)
-from .models import User
-from decouple import config
-import requests
-
 
 # 회원가입
 class UserView(APIView):
-    # 회원가입
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "가입완료!"}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"message":f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message":f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
 
-
+# 로그인
 class LoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+    '''
     def post(self, request):
         serializer = CustomTokenObtainPairSerializer(data=request.data)
         if serializer.is_valid():
             return Response(serializer.validated_data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)'''
 
 
 # Retrieve(조회)를 뜻함. RetrieveUpdateAPIView 는 사용자 프로필의 상세정보를 조회하는 기능을 제공.
@@ -51,118 +54,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def retrieve(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             return super().retrieve(request, *args, **kwargs)
-        else:
-            return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
     def put(self, request, *args, **kwargs):
         if self.request.user.is_authenticated and self.get_object() == self.request.user:   # 요청을 보낸 사용자가 인증되었고, 요청이 자신의 프로필을 대상으로 하는지 확인하는 것.
             return super().update(request, *args, **kwargs)
-        else:
-            return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+        return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
 
     def partial_update(self, request, *args, **kwargs): # HTTP PATCH의 요청을 처리함. 리소스의 부분적인 업데이트를 위해 사용됨.
         return self.update(request, *args, **kwargs)
-    
-# kakao 소셜로그인
-# class KakaoLoginView(APIView):
-#     def post(self, request):
-#         print("request.data:", request.data)
-#         code = request.data.get('code')
-#         get_code = code.split('?code='[-1])
-#         print('code:', code)
-#         redirect_url = config('REDIRECT_URI')
-        
-#         #if code is None:
-#             #return Response(status=status.HTTP_400_BAD_REQUEST)
-  
-#         access_token = requests.post(
-#             "https://kauth.kakao.com/oauth/token",
-#             headers={"Content-Type": "application/x-www-form-urlencoded"},
-#             data={
-#                 'grant_type': 'authorization_code',
-#                 'client_id': config('KAKAO_API_KEY'),
-#                 'redirect_url': config('REDIRECT_URI'),
-#                 'client_secret': config('KAKAO_SECRET_KEY'),
-#                 'code': get_code,
-#             },
-#         )
-#         print("access_token.json:", access_token.json)
-#         access_token = access_token.json().get('access_token')
-#         user_data_request = requests.get(
-#             'https://kapi.kakao.com/v2/user/me',
-#             headers={
-#                 'Authorization': f'Bearer {access_token}',
-#                 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-#             },
-#         )
-#         user_data = user_data.json()
-#         print("user_data:", user_data)
-#         kakao_account = user_data.get('kakao_account')
-#         user_email = kakao_account.get('kakao_account').get('email')
-#         user_nickname = kakao_account.get('nickname'),
-#         user_image = kakao_account.get('profile')['profile_image_url']
-        
-#         ran_str = ''
-#         ran_num = random.randint(0, 99999)
-#         for i in range(10):
-#             ran_str += str(random.choice(string.ascii_letters + str(ran_num)))
-            
-#         username = 'kakao_' + ran_str
-#         try:
-#             user = User.objects.get(email=email)
-#             type = user.login_type
-#             if type == 'normal' and user.user_status == 'active':
-#                 return Response(
-#                     '일반회원으로 이미 가입하셨음. 아이디, 비번을 까먹었다면 아이디 찾기, 비밀번호 재설정을 이용하세요.',
-#                     status=status.HTTP_400_BAD_REQUEST,
-#                 )
-#             elif type != 'kakao':
-#                 return Response(
-#                     f'{type}으로 가입하셨음. 다시 로그인해주세요.', status=status.HTTP_400_BAD_REQUEST
-#                 )
-#             elif user.is_active == False:
-#                 return Response(
-#                     f'{user}님은 탈퇴한 회원.', status=status.HTTP_400_REQUEST
-#                 )
-#             else:
-#                 refresh = RefreshToken.for_user(user)
-#                 refresh["email"] = user.email
-#                 refresh["nickname"] = user.nickname
-#                 refresh["login_type"] = user.login_type
-#                 refresh["is_admin"] = user.is_admin
-#                 user.last_login = timezone.now()
-#                 user.save()
-#                 refresh["last_login"] = str(user.last_login)
-#                 return Response(
-#                     {
-#                         "refresh": str(refresh),
-#                         "access": str(refresh.access_token),
-#                     },
-#                     status=status.HTTP_200_OK,
-#                 )
-#         except:
-#             user = User.objects.create_user(
-#                 email=email,
-#                 username=username,
-#                 nickname=nickname,
-#                 profileimage=None,
-#                 profileimageurl=image,
-#                 login_type="kakao",
-#             )
-#             user.last_login = timezone.now()
-#             user.set_unusable_password()
-#             user.save()
-#             refresh = RefreshToken.for_user(user)
-#             refresh["email"] = user.email
-#             refresh["nickname"] = user.nickname
-#             refresh["login_type"] = user.login_type
-#             refresh["is_admin"] = user.is_admin
-#             refresh["last_login"] = str(user.last_login)
-#             return Response(
-#                 {
-#                     "refresh": str(refresh),
-#                     "access": str(refresh.access_token),
-#                 },
-#                 status=status.HTTP_200_OK,
-#             )
-            
