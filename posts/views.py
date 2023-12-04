@@ -80,7 +80,6 @@ class DalleAPIView(APIView):
         return Response({"image": str(image_url)})
 
 class PostView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
     def get(self, request, post_id=None):
         if post_id: #post_id가 존재하면 특정 게시물의 상세 정보를 요청함.
             # 상세보기
