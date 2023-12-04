@@ -8,8 +8,6 @@ from . import views
 from .views import UserView, LoginView, UserProfileView
 
 urlpatterns = ([
-    # kakao 로그인
-    # path("kakao-login/", views.KakaoLoginView.as_view(), name="kakao_login"),
     # 로그인
     path("token/", LoginView.as_view(), name="token_obtain_pair"),
     # 갱신

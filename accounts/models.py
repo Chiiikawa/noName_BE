@@ -20,7 +20,6 @@ class UserManager(BaseUserManager): # BaseUserManager 상속받아 custom
 
     def create_superuser(self, **fields):   # BaseUserManager의 create_superuser method를 overiding을 한다.
         fields.setdefault("is_admin", True) # 'fields' 딕셔너리에 'is_admin' 키가 없을 경우, 기본값으로 'True'를 설정한다. 즉. 생성되는 슈퍼유저는 기본적으로 관지라 권한을 가진다.
-        fields.setdefault("is_superuser", True) # 'is_superuser'키가 'fields' 딕셔너리에 없으면, 이를 'True'로 설정한다. 생성되는 사용자가 슈퍼유저임을 의미한다.
         fields.setdefault("is_active", True)    # 'is_activate'키에 대해 'fields' 딕녀서리에 기본값으로 'True'를 설정한다. 슈퍼유저 계정이 활성화된 상태를 의미한다.
         user = self.create_user(**fields)   # 'create_user' 메서드를 사용하여 새로운 사용자를 생성한다. 여기서 '**fields'는 이전에 설정한 관리자, 슈퍼유저, 활성화 상태 등을 포함한 모든 필드를 'creaute_user' 메서드에 전달한다.
         user.save(using=self._db)   # 생성된 사용자 객체('user')를 데이터베이스에 저장한다. 'using=self._db' 사용할 데이터베이스를 명시하는데, 여러 데이터베이스를 사용하는 경우 중 어떤 데이터베이스를 사용할지 지정하는 것.
