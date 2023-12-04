@@ -79,8 +79,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_bookmarks(self, obj):
         bookmarks = Bookmark.objects.filter(user=obj)
-        bookmark_serializer = BookmarkSerializer(bookmarks, many=True)  # BookmarkSerializer는 실제 프로젝트의 Bookmark 모델에 맞게 사용
-        return bookmark_serializer.data
+        bookmark_data = []
+        for bookmark in bookmarks:
+            bookmark_data.append({
+                'post_id': bookmark.post.id,
+                'generated_image_url': self.get_image_url(bookmark.post.generated_image),
+            })
+        return bookmark_data
+
+    def get_image_url(self, generated_image):
+        if generated_image:
+            return generated_image.url
+        return None
     
     def update(self, instance, validated_data):
         # Only update the fields that can be modified by the user
