@@ -191,3 +191,5 @@ SIMPLE_JWT = {
 # 모든 URL에 대해 CORS 예외 모두 적용
 CORS_ALLOW_ALL_ORIGINS = True
 API_REQUEST_POINT = 1
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

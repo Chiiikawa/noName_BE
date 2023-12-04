@@ -2,6 +2,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import AccessToken
 
 # Project, app 내부에서 import
 from accounts.models import User
@@ -43,6 +44,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user) # 기본 토큰을 생성
         token['email'] = user.email
+        token['username'] = user.username 
         return token
     
 class UserProfileSerializer(serializers.ModelSerializer):
