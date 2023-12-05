@@ -10,10 +10,7 @@ OPENAI_API_KEY = config('OPENAI_API_KEY')
 SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = config('DEBUG')
-if DEBUG:
-    ALLOWED_HOSTS = ['*']
-else:
-    ALLOWED_HOSTS = config['ALLOWED_HOSTS']
+ALLOWED_HOSTS = [".xn--950b6f504d.store",]
 
 SITE_ID = 1
 
